@@ -1,0 +1,188 @@
+\chapter{Häufige Fehler}
+\label{ch:quality/common-mistakes}
+
+Dieses Kapitel beschreibt häufige Fehler und wie du sie vermeidest.
+
+\section{Vorsicht beim Speichern von
+ObjectRefs}\label{vorsicht-beim-speichern-von-objectrefs}
+
+Ein ObjectRef\index{objectref@\texttt{ObjectRef}} (also ein Spieler oder
+eine Entity)\index{entity@Entity} wird ungültig, wenn der Spieler oder
+die Entity, für die es steht, das Spiel verlässt. Das passiert, wenn der
+Spieler offline geht oder die Entity entladen oder entfernt wird.
+
+Seit Luanti 5.2 geben die Methoden eines ungültigen ObjectRefs immer
+\texttt{nil} zurück; jeder Aufruf wird im Grunde ignoriert.
+
+Speichere ObjectRefs möglichst nicht. Wenn du es doch tust, prüfe vor
+der Verwendung, ob das ObjectRef noch gültig ist:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Funktioniert erst ab Luanti 5.2}
+\ControlFlowTok{if} \VariableTok{obj}\OperatorTok{:}\NormalTok{get\_pos}\OperatorTok{()} \ControlFlowTok{then}
+    \CommentTok{{-}{-} ist gültig!}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Formspec-Eingaben nicht
+vertrauen}\label{formspec-eingaben-nicht-vertrauen}
+
+Bösartige Clients können Formspecs\index{formspec@Formspec} jederzeit
+und mit beliebigem Inhalt abschicken.
+
+Der folgende Code hat zum Beispiel eine Sicherheitslücke, durch die
+Spieler sich selbst Moderatorrechte geben können:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \KeywordTok{function}\NormalTok{ show\_formspec}\OperatorTok{(}\VariableTok{name}\OperatorTok{)}
+    \ControlFlowTok{if}
+        \KeywordTok{not} \VariableTok{core}\OperatorTok{.}\NormalTok{check\_player\_privs}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \OperatorTok{\{} \VariableTok{privs} \OperatorTok{=} \KeywordTok{true} \OperatorTok{\})}
+    \ControlFlowTok{then}
+        \ControlFlowTok{return} \KeywordTok{false}
+    \ControlFlowTok{end}
+
+    \VariableTok{core}\OperatorTok{.}\NormalTok{show\_formspec}\OperatorTok{(}
+        \VariableTok{name}\OperatorTok{,}
+        \StringTok{"modman:modman"}\OperatorTok{,}
+        \VerbatimStringTok{[[}
+\VerbatimStringTok{        size[3,2]}
+\VerbatimStringTok{        field[0,0;3,1;target;Name;]}
+\VerbatimStringTok{        button\_exit[0,1;3,1;sub;Promote]}
+\VerbatimStringTok{    ]]}
+    \OperatorTok{)}
+    \ControlFlowTok{return} \KeywordTok{true}
+\KeywordTok{end}
+
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_on\_player\_receive\_fields}\OperatorTok{(}
+    \KeywordTok{function}\OperatorTok{(}\VariableTok{player}\OperatorTok{,} \VariableTok{formname}\OperatorTok{,} \VariableTok{fields}\OperatorTok{)}
+        \CommentTok{{-}{-} SCHLECHT! Hier fehlt die Prüfung der Privilegien!}
+
+        \KeywordTok{local} \VariableTok{privs} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_player\_privs}\OperatorTok{(}\VariableTok{fields}\OperatorTok{.}\VariableTok{target}\OperatorTok{)}
+        \VariableTok{privs}\OperatorTok{.}\VariableTok{kick} \OperatorTok{=} \KeywordTok{true}
+        \VariableTok{privs}\OperatorTok{.}\VariableTok{ban} \OperatorTok{=} \KeywordTok{true}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{set\_player\_privs}\OperatorTok{(}\VariableTok{fields}\OperatorTok{.}\VariableTok{target}\OperatorTok{,} \VariableTok{privs}\OperatorTok{)}
+        \ControlFlowTok{return} \KeywordTok{true}
+    \KeywordTok{end}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Mit einer Prüfung der Privilegien\index{privileg@Privileg} ist die Lücke
+geschlossen:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_on\_player\_receive\_fields}\OperatorTok{(}
+    \KeywordTok{function}\OperatorTok{(}\VariableTok{player}\OperatorTok{,} \VariableTok{formname}\OperatorTok{,} \VariableTok{fields}\OperatorTok{)}
+        \KeywordTok{local} \VariableTok{name} \OperatorTok{=} \VariableTok{player}\OperatorTok{:}\NormalTok{get\_player\_name}\OperatorTok{()}
+        \ControlFlowTok{if}
+            \KeywordTok{not} \VariableTok{core}\OperatorTok{.}\NormalTok{check\_player\_privs}\OperatorTok{(}
+                \VariableTok{name}\OperatorTok{,}
+                \OperatorTok{\{} \VariableTok{privs} \OperatorTok{=} \KeywordTok{true} \OperatorTok{\}}
+            \OperatorTok{)}
+        \ControlFlowTok{then}
+            \ControlFlowTok{return} \KeywordTok{false}
+        \ControlFlowTok{end}
+
+        \CommentTok{{-}{-} Code}
+    \KeywordTok{end}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{ItemStacks nach dem Ändern
+zurücksetzen}\label{itemstacks-nach-dem-uxe4ndern-zuruxfccksetzen}
+
+Ist dir aufgefallen, dass es in der API einfach
+\texttt{ItemStack}\index{itemstack@\texttt{ItemStack}} heißt und nicht
+\texttt{ItemStackRef}, analog zu \texttt{InvRef}? Ein \texttt{ItemStack}
+ist nämlich keine Referenz, sondern eine Kopie. Du arbeitest mit einer
+Kopie der Daten, nicht mit dem Stack im
+Inventar.\index{inventar@Inventar} Änderst du den Stack, ändert sich der
+Stack im Inventar also nicht.
+
+Mach das zum Beispiel nicht:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{inv} \OperatorTok{=} \VariableTok{player}\OperatorTok{:}\NormalTok{get\_inventory}\OperatorTok{()}
+\KeywordTok{local} \VariableTok{stack} \OperatorTok{=} \VariableTok{inv}\OperatorTok{:}\NormalTok{get\_stack}\OperatorTok{(}\StringTok{"main"}\OperatorTok{,} \DecValTok{1}\OperatorTok{)}
+\VariableTok{stack}\OperatorTok{:}\NormalTok{get\_meta}\OperatorTok{():}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"description"}\OperatorTok{,} \StringTok{"Angebissen"}\OperatorTok{)}
+\CommentTok{{-}{-} SCHLECHT! Die Änderung geht verloren}
+\end{Highlighting}
+\end{Shaded}
+
+Sondern so:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{inv} \OperatorTok{=} \VariableTok{player}\OperatorTok{:}\NormalTok{get\_inventory}\OperatorTok{()}
+\KeywordTok{local} \VariableTok{stack} \OperatorTok{=} \VariableTok{inv}\OperatorTok{:}\NormalTok{get\_stack}\OperatorTok{(}\StringTok{"main"}\OperatorTok{,} \DecValTok{1}\OperatorTok{)}
+\VariableTok{stack}\OperatorTok{:}\NormalTok{get\_meta}\OperatorTok{():}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"description"}\OperatorTok{,} \StringTok{"Angebissen"}\OperatorTok{)}
+\VariableTok{inv}\OperatorTok{:}\NormalTok{set\_stack}\OperatorTok{(}\StringTok{"main"}\OperatorTok{,} \DecValTok{1}\OperatorTok{,} \VariableTok{stack}\OperatorTok{)}
+\CommentTok{{-}{-} Richtig! Der ItemStack wird gesetzt}
+\end{Highlighting}
+\end{Shaded}
+
+Bei Callbacks\index{callback@Callback} ist es etwas komplizierter.
+Änderst du einen übergebenen \texttt{ItemStack}, ändert er sich auch für
+den Aufrufer und alle folgenden Callbacks. In der Engine gespeichert
+wird er aber nur, wenn der Aufrufer des Callbacks ihn setzt.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_on\_item\_eat}\OperatorTok{(}
+    \KeywordTok{function}\OperatorTok{(}
+        \VariableTok{hp\_change}\OperatorTok{,}
+        \VariableTok{replace\_with\_item}\OperatorTok{,}
+        \VariableTok{itemstack}\OperatorTok{,}
+        \VariableTok{user}\OperatorTok{,}
+        \VariableTok{pointed\_thing}
+    \OperatorTok{)}
+        \VariableTok{itemstack}
+            \OperatorTok{:}\NormalTok{get\_meta}\OperatorTok{()}
+            \OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"description"}\OperatorTok{,} \StringTok{"Angebissen"}\OperatorTok{)}
+        \CommentTok{{-}{-} Fast richtig! Die Daten gehen verloren,}
+        \CommentTok{{-}{-} wenn ein anderer Callback das Verhalten abbricht}
+    \KeywordTok{end}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Bricht kein Callback ab, wird der Stack gesetzt und die Beschreibung
+aktualisiert. Bricht aber ein Callback ab, kann die Änderung verloren
+gehen.
+
+Besser ist es so:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_on\_item\_eat}\OperatorTok{(}
+    \KeywordTok{function}\OperatorTok{(}
+        \VariableTok{hp\_change}\OperatorTok{,}
+        \VariableTok{replace\_with\_item}\OperatorTok{,}
+        \VariableTok{itemstack}\OperatorTok{,}
+        \VariableTok{user}\OperatorTok{,}
+        \VariableTok{pointed\_thing}
+    \OperatorTok{)}
+        \VariableTok{itemstack}
+            \OperatorTok{:}\NormalTok{get\_meta}\OperatorTok{()}
+            \OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"description"}\OperatorTok{,} \StringTok{"Angebissen"}\OperatorTok{)}
+        \VariableTok{user}\OperatorTok{:}\NormalTok{get\_inventory}\OperatorTok{():}\NormalTok{set\_stack}\OperatorTok{(}
+            \StringTok{"main"}\OperatorTok{,}
+            \VariableTok{user}\OperatorTok{:}\NormalTok{get\_wield\_index}\OperatorTok{(),}
+            \VariableTok{itemstack}
+        \OperatorTok{)}
+        \CommentTok{{-}{-} Richtig, die Beschreibung wird immer gesetzt!}
+    \KeywordTok{end}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Brechen die Callbacks ab oder setzt der Aufrufer den Stack nicht, wird
+die Änderung trotzdem übernommen. Setzen die Callbacks oder der Aufrufer
+den Stack, schadet das zusätzliche \texttt{set\_\allowbreak{}stack}
+nicht.

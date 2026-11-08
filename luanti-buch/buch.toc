@@ -1,0 +1,262 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {chapter}{\nonumberline Einleitung}{xiii}{chapter*.2}%
+\contentsline {section}{Feedback und Beiträge}{xiii}{section*.3}%
+\contentsline {part}{\numberline {I}Grundlagen}{1}{part.1}%
+\contentsline {chapter}{\numberline {1}Erste Schritte}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Was sind Spiele und Mods?}{3}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Wo werden die Mods gespeichert?}{3}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Deinen ersten Mod erstellen}{4}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}Mod-Verzeichnis}{4}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}mod.conf}{5}{subsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.3.3}init.lua}{5}{subsection.1.3.3}%
+\contentsline {subsection}{\numberline {1.3.4}Zusammenfassung}{5}{subsection.1.3.4}%
+\contentsline {section}{\numberline {1.4}Abhängigkeiten}{6}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Mod-Pakete}{6}{section.1.5}%
+\contentsline {chapter}{\numberline {2}Lua-Skripting}{7}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Programmierung}{7}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Programmieren in Lua}{7}{subsection.2.1.1}%
+\contentsline {section}{\numberline {2.2}Code-Editoren}{7}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Lokaler und globaler Gültigkeitsbereich}{8}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Möglichst lokale Variablen verwenden}{9}{subsection.2.3.1}%
+\contentsline {section}{\numberline {2.4}Andere Lua-Skripte einbinden}{11}{section.2.4}%
+\contentsline {part}{\numberline {II}Items}{13}{part.2}%
+\contentsline {chapter}{\numberline {3}Nodes, Items und Craften}{15}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Was sind Nodes und Items?}{15}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Items registrieren}{15}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Itemnamen}{16}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Item-Aliase}{16}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Texturen}{17}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Einen einfachen Node registrieren}{17}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Crafting}{18}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Shaped}{18}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Shapeless}{19}{subsection.3.4.2}%
+\contentsline {subsection}{\numberline {3.4.3}Cooking und Fuel}{20}{subsection.3.4.3}%
+\contentsline {section}{\numberline {3.5}Gruppen}{21}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Werkzeuge, Fähigkeiten und Abbautypen}{21}{section.3.6}%
+\contentsline {chapter}{\numberline {4}Node- und Item-Callbacks}{25}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Item-Callbacks}{25}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}on\_use}{25}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}on\_place und on\_secondary\_use}{26}{subsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.1.3}on\_drop}{26}{subsection.4.1.3}%
+\contentsline {subsection}{\numberline {4.1.4}after\_use}{26}{subsection.4.1.4}%
+\contentsline {section}{\numberline {4.2}item\_place oder place\_item?}{27}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Node-Callbacks}{27}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Rechtsklick und Platzieren}{28}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Schlagen und Abbauen}{29}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}\dots {} und mehr!}{29}{subsection.4.3.3}%
+\contentsline {chapter}{\numberline {5}Texturen erstellen}{31}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Techniken}{31}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Mit dem Stift arbeiten}{31}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Kacheln}{31}{subsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.1.3}Transparenz}{31}{subsection.5.1.3}%
+\contentsline {subsection}{\numberline {5.1.4}Farbpaletten}{32}{subsection.5.1.4}%
+\contentsline {section}{\numberline {5.2}Editoren}{32}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}MS Paint}{32}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}Aseprite / LibreSprite}{32}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}GIMP}{32}{subsection.5.2.3}%
+\contentsline {chapter}{\numberline {6}Zeichnungstypen von Nodes}{33}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Würfelförmige Nodes: normal und allfaces}{33}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Glasartige Nodes}{34}{section.6.2}%
+\contentsline {subsection}{\numberline {6.2.1}glasslike\_framed}{35}{subsection.6.2.1}%
+\contentsline {section}{\numberline {6.3}Luftartige Nodes}{36}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Beleuchtung und Ausbreitung des Sonnenlichts}{36}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Flüssige Nodes}{37}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Nodeboxen}{39}{section.6.6}%
+\contentsline {subsection}{\numberline {6.6.1}Nodeboxen für Wandmontage}{40}{subsection.6.6.1}%
+\contentsline {section}{\numberline {6.7}Mesh-Nodes}{41}{section.6.7}%
+\contentsline {section}{\numberline {6.8}Signlike-Nodes}{42}{section.6.8}%
+\contentsline {section}{\numberline {6.9}Plantlike-Nodes}{43}{section.6.9}%
+\contentsline {section}{\numberline {6.10}Firelike-Nodes}{43}{section.6.10}%
+\contentsline {section}{\numberline {6.11}Weitere Zeichnungstypen}{44}{section.6.11}%
+\contentsline {chapter}{\numberline {7}ItemStacks und Inventare}{45}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Was sind ItemStacks und Inventare?}{45}{section.7.1}%
+\contentsline {section}{\numberline {7.2}ItemStacks}{45}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Inventarorte}{46}{section.7.3}%
+\contentsline {subsection}{\numberline {7.3.1}Node-Inventare}{46}{subsection.7.3.1}%
+\contentsline {subsection}{\numberline {7.3.2}Spielerinventare}{47}{subsection.7.3.2}%
+\contentsline {subsection}{\numberline {7.3.3}Freistehende Inventare}{47}{subsection.7.3.3}%
+\contentsline {section}{\numberline {7.4}Listen}{49}{section.7.4}%
+\contentsline {subsection}{\numberline {7.4.1}Größe und Breite}{49}{subsection.7.4.1}%
+\contentsline {subsection}{\numberline {7.4.2}Inhalt prüfen}{50}{subsection.7.4.2}%
+\contentsline {section}{\numberline {7.5}Inventare und ItemStacks verändern}{50}{section.7.5}%
+\contentsline {subsection}{\numberline {7.5.1}Zu einer Liste hinzufügen}{50}{subsection.7.5.1}%
+\contentsline {subsection}{\numberline {7.5.2}Items herausnehmen}{50}{subsection.7.5.2}%
+\contentsline {subsection}{\numberline {7.5.3}Stacks verändern}{51}{subsection.7.5.3}%
+\contentsline {section}{\numberline {7.6}Abnutzung}{52}{section.7.6}%
+\contentsline {section}{\numberline {7.7}Lua-Tabellen}{52}{section.7.7}%
+\contentsline {part}{\numberline {III}Karte}{55}{part.3}%
+\contentsline {chapter}{\numberline {8}Grundlegende Kartenoperationen}{57}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Aufbau der Karte}{57}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Lesen}{57}{section.8.2}%
+\contentsline {subsection}{\numberline {8.2.1}Nodes lesen}{57}{subsection.8.2.1}%
+\contentsline {subsection}{\numberline {8.2.2}Nodes finden}{58}{subsection.8.2.2}%
+\contentsline {section}{\numberline {8.3}Schreiben}{60}{section.8.3}%
+\contentsline {subsection}{\numberline {8.3.1}Nodes schreiben}{60}{subsection.8.3.1}%
+\contentsline {subsection}{\numberline {8.3.2}Nodes entfernen}{60}{subsection.8.3.2}%
+\contentsline {section}{\numberline {8.4}Mapblöcke laden}{61}{section.8.4}%
+\contentsline {section}{\numberline {8.5}Mapblöcke löschen}{62}{section.8.5}%
+\contentsline {chapter}{\numberline {9}Node-Timer und ABMs}{63}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Node-Timer}{63}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Active Block Modifiers}{64}{section.9.2}%
+\contentsline {section}{\numberline {9.3}Jetzt bist du dran}{65}{section.9.3}%
+\contentsline {chapter}{\numberline {10}Speicherung und Metadaten}{67}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Metadaten}{67}{section.10.1}%
+\contentsline {subsection}{\numberline {10.1.1}Was sind Metadaten?}{67}{subsection.10.1.1}%
+\contentsline {subsection}{\numberline {10.1.2}Ein Metadaten-Objekt holen}{67}{subsection.10.1.2}%
+\contentsline {subsection}{\numberline {10.1.3}Lesen und Schreiben}{68}{subsection.10.1.3}%
+\contentsline {subsection}{\numberline {10.1.4}Besondere Schlüssel}{68}{subsection.10.1.4}%
+\contentsline {subsection}{\numberline {10.1.5}Tabellen speichern}{69}{subsection.10.1.5}%
+\contentsline {subsection}{\numberline {10.1.6}Private Metadaten}{69}{subsection.10.1.6}%
+\contentsline {subsection}{\numberline {10.1.7}Lua-Tabellen}{69}{subsection.10.1.7}%
+\contentsline {section}{\numberline {10.2}Mod-Speicher}{69}{section.10.2}%
+\contentsline {section}{\numberline {10.3}Datenbanken}{70}{section.10.3}%
+\contentsline {section}{\numberline {10.4}Was soll ich verwenden?}{71}{section.10.4}%
+\contentsline {section}{\numberline {10.5}Jetzt bist du dran}{72}{section.10.5}%
+\contentsline {chapter}{\numberline {11}Objekte, Spieler und Entities}{73}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Was sind Objekte, Spieler und Entities?}{73}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Position und Geschwindigkeit}{73}{section.11.2}%
+\contentsline {section}{\numberline {11.3}Objekteigenschaften}{74}{section.11.3}%
+\contentsline {section}{\numberline {11.4}Entities}{74}{section.11.4}%
+\contentsline {section}{\numberline {11.5}Lebenspunkte und Schaden}{77}{section.11.5}%
+\contentsline {subsection}{\numberline {11.5.1}Lebenspunkte (HP)}{77}{subsection.11.5.1}%
+\contentsline {subsection}{\numberline {11.5.2}Schläge, Schadensgruppen und Rüstungsgruppen}{78}{subsection.11.5.2}%
+\contentsline {subsection}{\numberline {11.5.3}Beispiel für eine Schadensberechnung}{78}{subsection.11.5.3}%
+\contentsline {section}{\numberline {11.6}Anhängen}{80}{section.11.6}%
+\contentsline {section}{\numberline {11.7}Jetzt bist du dran}{80}{section.11.7}%
+\contentsline {part}{\numberline {IV}Spieler}{81}{part.4}%
+\contentsline {chapter}{\numberline {12}Privilegien}{83}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Wann sind Privilegien sinnvoll?}{83}{section.12.1}%
+\contentsline {section}{\numberline {12.2}Privilegien deklarieren}{83}{section.12.2}%
+\contentsline {section}{\numberline {12.3}Privilegien prüfen}{84}{section.12.3}%
+\contentsline {section}{\numberline {12.4}Privilegien lesen und setzen}{85}{section.12.4}%
+\contentsline {section}{\numberline {12.5}Privilegien zu basic\_privs hinzufügen}{85}{section.12.5}%
+\contentsline {chapter}{\numberline {13}Chat und Befehle}{87}{chapter.13}%
+\contentsline {section}{\numberline {13.1}Nachrichten senden}{87}{section.13.1}%
+\contentsline {subsection}{\numberline {13.1.1}An alle Spieler}{87}{subsection.13.1.1}%
+\contentsline {subsection}{\numberline {13.1.2}An bestimmte Spieler}{87}{subsection.13.1.2}%
+\contentsline {section}{\numberline {13.2}Chatbefehle}{88}{section.13.2}%
+\contentsline {subsection}{\numberline {13.2.1}Mehrere Argumente}{89}{subsection.13.2.1}%
+\contentsline {subsubsection}{\nonumberline Mit string.split}{89}{subsubsection*.5}%
+\contentsline {subsubsection}{\nonumberline Mit Lua-Patterns}{89}{subsubsection*.7}%
+\contentsline {section}{\numberline {13.3}Nachrichten abfangen}{90}{section.13.3}%
+\contentsline {chapter}{\numberline {14}Spielerphysik}{93}{chapter.14}%
+\contentsline {section}{\numberline {14.1}Ein einfaches Beispiel}{93}{section.14.1}%
+\contentsline {section}{\numberline {14.2}Verfügbare Overrides}{93}{section.14.2}%
+\contentsline {subsection}{\numberline {14.2.1}Altes Bewegungsverhalten}{94}{subsection.14.2.1}%
+\contentsline {section}{\numberline {14.3}Unverträglichkeit zwischen Mods}{94}{section.14.3}%
+\contentsline {section}{\numberline {14.4}Jetzt bist du dran}{94}{section.14.4}%
+\contentsline {chapter}{\numberline {15}GUIs (Formspecs)}{95}{chapter.15}%
+\contentsline {section}{\numberline {15.1}Echte oder alte Koordinaten}{95}{section.15.1}%
+\contentsline {section}{\numberline {15.2}Aufbau einer Formspec}{96}{section.15.2}%
+\contentsline {subsection}{\numberline {15.2.1}Elemente}{96}{subsection.15.2.1}%
+\contentsline {subsection}{\numberline {15.2.2}Kopf}{96}{subsection.15.2.2}%
+\contentsline {section}{\numberline {15.3}Ein Ratespiel}{97}{section.15.3}%
+\contentsline {subsection}{\numberline {15.3.1}Innenabstand und Zwischenraum}{99}{subsection.15.3.1}%
+\contentsline {subsection}{\numberline {15.3.2}Eingaben empfangen}{99}{subsection.15.3.2}%
+\contentsline {subsection}{\numberline {15.3.3}Kontexte}{100}{subsection.15.3.3}%
+\contentsline {section}{\numberline {15.4}Wege zur Formspec}{102}{section.15.4}%
+\contentsline {subsection}{\numberline {15.4.1}Formspecs in Node-Metadaten}{102}{subsection.15.4.1}%
+\contentsline {subsection}{\numberline {15.4.2}Formspecs im Spielerinventar}{103}{subsection.15.4.2}%
+\contentsline {subsection}{\numberline {15.4.3}Jetzt bist du dran}{103}{subsection.15.4.3}%
+\contentsline {chapter}{\numberline {16}HUD}{105}{chapter.16}%
+\contentsline {section}{\numberline {16.1}Positionierung}{105}{section.16.1}%
+\contentsline {subsection}{\numberline {16.1.1}Position und Versatz}{105}{subsection.16.1.1}%
+\contentsline {subsection}{\numberline {16.1.2}Ausrichtung}{106}{subsection.16.1.2}%
+\contentsline {subsection}{\numberline {16.1.3}Punkteanzeige}{106}{subsection.16.1.3}%
+\contentsline {section}{\numberline {16.2}Textelemente}{107}{section.16.2}%
+\contentsline {subsection}{\numberline {16.2.1}Parameter}{107}{subsection.16.2.1}%
+\contentsline {subsection}{\numberline {16.2.2}Unser Beispiel}{107}{subsection.16.2.2}%
+\contentsline {section}{\numberline {16.3}Bildelemente}{109}{section.16.3}%
+\contentsline {subsection}{\numberline {16.3.1}Parameter}{109}{subsection.16.3.1}%
+\contentsline {subsection}{\numberline {16.3.2}Skalierung}{109}{subsection.16.3.2}%
+\contentsline {section}{\numberline {16.4}Ein Element ändern}{110}{section.16.4}%
+\contentsline {section}{\numberline {16.5}IDs speichern}{111}{section.16.5}%
+\contentsline {section}{\numberline {16.6}Weitere Elemente}{112}{section.16.6}%
+\contentsline {part}{\numberline {V}Fortgeschrittene Kartenbearbeitung}{113}{part.5}%
+\contentsline {chapter}{\numberline {17}Biome und Dekorationen}{115}{chapter.17}%
+\contentsline {section}{\numberline {17.1}Was sind Biome?}{115}{section.17.1}%
+\contentsline {section}{\numberline {17.2}Platzierung von Biomen}{115}{section.17.2}%
+\contentsline {subsection}{\numberline {17.2.1}Wärme und Feuchtigkeit}{115}{subsection.17.2.1}%
+\contentsline {subsection}{\numberline {17.2.2}Grenzen mit Voronoi-Diagrammen veranschaulichen}{116}{subsection.17.2.2}%
+\contentsline {subsection}{\numberline {17.2.3}Voronoi-Diagramme mit GeoGebra erstellen}{117}{subsection.17.2.3}%
+\contentsline {section}{\numberline {17.3}Ein Biom registrieren}{118}{section.17.3}%
+\contentsline {section}{\numberline {17.4}Was sind Dekorationen?}{118}{section.17.4}%
+\contentsline {section}{\numberline {17.5}Eine einfache Dekoration registrieren}{119}{section.17.5}%
+\contentsline {section}{\numberline {17.6}Eine Schematic-Dekoration registrieren}{119}{section.17.6}%
+\contentsline {section}{\numberline {17.7}Mapgen-Aliase}{120}{section.17.7}%
+\contentsline {chapter}{\numberline {18}Lua Voxel Manipulators}{121}{chapter.18}%
+\contentsline {section}{\numberline {18.1}Konzept}{121}{section.18.1}%
+\contentsline {section}{\numberline {18.2}Daten in den LVM lesen}{121}{section.18.2}%
+\contentsline {section}{\numberline {18.3}Nodes lesen}{122}{section.18.3}%
+\contentsline {section}{\numberline {18.4}Nodes schreiben}{123}{section.18.4}%
+\contentsline {section}{\numberline {18.5}Beispiel}{124}{section.18.5}%
+\contentsline {section}{\numberline {18.6}Jetzt bist du dran}{125}{section.18.6}%
+\contentsline {part}{\numberline {VI}Spiele}{127}{part.6}%
+\contentsline {chapter}{\numberline {19}Spiele erstellen}{129}{chapter.19}%
+\contentsline {section}{\numberline {19.1}Was ist ein Spiel?}{129}{section.19.1}%
+\contentsline {section}{\numberline {19.2}Spielverzeichnis}{129}{section.19.2}%
+\contentsline {section}{\numberline {19.3}Kompatibilität zwischen Spielen}{130}{section.19.3}%
+\contentsline {subsection}{\numberline {19.3.1}API-Kompatibilität}{130}{subsection.19.3.1}%
+\contentsline {subsection}{\numberline {19.3.2}Gruppen und Aliase}{131}{subsection.19.3.2}%
+\contentsline {section}{\numberline {19.4}Jetzt bist du dran}{131}{section.19.4}%
+\contentsline {part}{\numberline {VII}Qualität}{133}{part.7}%
+\contentsline {chapter}{\numberline {20}Übersetzungen}{135}{chapter.20}%
+\contentsline {section}{\numberline {20.1}Wie funktioniert die Übersetzung auf dem Client?}{135}{section.20.1}%
+\contentsline {subsection}{\numberline {20.1.1}Markierter Text}{135}{subsection.20.1.1}%
+\contentsline {subsection}{\numberline {20.1.2}Übersetzungsdateien}{136}{subsection.20.1.2}%
+\contentsline {subsubsection}{\nonumberline Altes Format}{137}{subsubsection*.9}%
+\contentsline {section}{\numberline {20.2}Platzhalter}{138}{section.20.2}%
+\contentsline {section}{\numberline {20.3}Gute Praxis und verbreitete Irrtümer}{138}{section.20.3}%
+\contentsline {section}{\numberline {20.4}Übersetzung auf dem Server}{139}{section.20.4}%
+\contentsline {section}{\numberline {20.5}Fazit}{139}{section.20.5}%
+\contentsline {chapter}{\numberline {21}Häufige Fehler}{141}{chapter.21}%
+\contentsline {section}{\numberline {21.1}Vorsicht beim Speichern von ObjectRefs}{141}{section.21.1}%
+\contentsline {section}{\numberline {21.2}Formspec-Eingaben nicht vertrauen}{141}{section.21.2}%
+\contentsline {section}{\numberline {21.3}ItemStacks nach dem Ändern zurücksetzen}{143}{section.21.3}%
+\contentsline {chapter}{\numberline {22}Automatische Fehlersuche mit LuaCheck}{145}{chapter.22}%
+\contentsline {section}{\numberline {22.1}LuaCheck installieren}{145}{section.22.1}%
+\contentsline {subsection}{\numberline {22.1.1}Windows}{145}{subsection.22.1.1}%
+\contentsline {subsection}{\numberline {22.1.2}Linux}{145}{subsection.22.1.2}%
+\contentsline {section}{\numberline {22.2}LuaCheck ausführen}{146}{section.22.2}%
+\contentsline {section}{\numberline {22.3}LuaCheck einrichten}{146}{section.22.3}%
+\contentsline {subsection}{\numberline {22.3.1}Fehlerbehebung}{147}{subsection.22.3.1}%
+\contentsline {section}{\numberline {22.4}Im Editor verwenden}{147}{section.22.4}%
+\contentsline {chapter}{\numberline {23}Sicherheit}{149}{chapter.23}%
+\contentsline {section}{\numberline {23.1}Grundprinzipien}{149}{section.23.1}%
+\contentsline {section}{\numberline {23.2}Formspecs}{149}{section.23.2}%
+\contentsline {subsection}{\numberline {23.2.1}Eingaben niemals vertrauen}{149}{subsection.23.2.1}%
+\contentsline {subsection}{\numberline {23.2.2}Zeitpunkt der Prüfung ist nicht Zeitpunkt der Verwendung}{150}{subsection.23.2.2}%
+\contentsline {section}{\numberline {23.3}(Unsichere) Umgebungen}{150}{section.23.3}%
+\contentsline {chapter}{\numberline {24}Saubere Architektur}{153}{chapter.24}%
+\contentsline {section}{\numberline {24.1}Kohäsion, Kopplung und Trennung der Belange}{153}{section.24.1}%
+\contentsline {section}{\numberline {24.2}Beobachter}{154}{section.24.2}%
+\contentsline {section}{\numberline {24.3}Model-View-Controller}{155}{section.24.3}%
+\contentsline {subsection}{\numberline {24.3.1}API-View}{158}{subsection.24.3.1}%
+\contentsline {section}{\numberline {24.4}Fazit}{158}{section.24.4}%
+\contentsline {chapter}{\numberline {25}Automatische Unit-Tests}{159}{chapter.25}%
+\contentsline {section}{\numberline {25.1}Busted installieren}{159}{section.25.1}%
+\contentsline {section}{\numberline {25.2}Dein erster Test}{159}{section.25.2}%
+\contentsline {subsection}{\numberline {25.2.1}init.lua}{160}{subsection.25.2.1}%
+\contentsline {subsection}{\numberline {25.2.2}api.lua}{160}{subsection.25.2.2}%
+\contentsline {subsection}{\numberline {25.2.3}tests/api\_spec.lua}{160}{subsection.25.2.3}%
+\contentsline {section}{\numberline {25.3}Mocking: Externe Funktionen ersetzen}{161}{section.25.3}%
+\contentsline {section}{\numberline {25.4}Fazit}{163}{section.25.4}%
+\contentsline {chapter}{\numberline {26}Einen Mod veröffentlichen}{165}{chapter.26}%
+\contentsline {section}{\numberline {26.1}Eine Lizenz wählen}{165}{section.26.1}%
+\contentsline {subsection}{\numberline {26.1.1}LGPL und CC BY-SA}{165}{subsection.26.1.1}%
+\contentsline {subsection}{\numberline {26.1.2}CC0}{166}{subsection.26.1.2}%
+\contentsline {subsection}{\numberline {26.1.3}MIT}{166}{subsection.26.1.3}%
+\contentsline {section}{\numberline {26.2}Verpacken}{166}{section.26.2}%
+\contentsline {subsection}{\numberline {26.2.1}README.txt}{166}{subsection.26.2.1}%
+\contentsline {subsection}{\numberline {26.2.2}mod.conf / game.conf}{167}{subsection.26.2.2}%
+\contentsline {subsection}{\numberline {26.2.3}screenshot.png}{167}{subsection.26.2.3}%
+\contentsline {section}{\numberline {26.3}Hochladen}{167}{section.26.3}%
+\contentsline {subsection}{\numberline {26.3.1}Versionsverwaltung}{168}{subsection.26.3.1}%
+\contentsline {section}{\numberline {26.4}Auf ContentDB veröffentlichen}{168}{section.26.4}%
+\contentsline {section}{\numberline {26.5}Forenthema}{168}{section.26.5}%
+\contentsline {chapter}{\numberline {27}Weiterlesen}{171}{chapter.27}%
+\contentsline {section}{\numberline {27.1}Modding für Luanti}{171}{section.27.1}%
+\contentsline {section}{\numberline {27.2}Programmieren in Lua}{171}{section.27.2}%
+\contentsline {section}{\numberline {27.3}3D-Modellierung}{171}{section.27.3}%
+\contentsline {chapter}{Stichwortverzeichnis}{173}{section*.10}%
+\providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

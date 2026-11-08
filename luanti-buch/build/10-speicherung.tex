@@ -1,0 +1,279 @@
+\chapter{Speicherung und Metadaten}
+\label{ch:map/storage}
+
+In diesem Kapitel lernst du, wie du Daten speichern kannst.
+
+\section{Metadaten}\label{metadaten}
+
+\subsection{Was sind Metadaten?}\label{was-sind-metadaten}
+
+Metadaten\index{metadaten@Metadaten} sind in Luanti ein
+Schlüssel-Wert-Speicher, mit dem du eigene Daten an etwas anhängst. Du
+kannst damit Informationen zu einem Node, einem Spieler oder einem
+ItemStack\index{itemstack@\texttt{ItemStack}} speichern.
+
+Alle Arten von Metadaten verwenden genau dieselbe API. Metadaten
+speichern Werte als Strings, es gibt aber eine Reihe von Methoden, um
+andere einfache Datentypen umzuwandeln und zu speichern.
+
+Manche Schlüssel haben eine besondere Bedeutung. So speichert
+\texttt{infotext} in Node-Metadaten den Tooltip, der erscheint, wenn man
+mit dem Fadenkreuz auf den Node zeigt. Um Konflikte mit anderen Mods zu
+vermeiden, solltest du für Schlüssel die übliche Namensraum-Konvention
+verwenden: \texttt{modname:keyname}. Ausnahme sind gebräuchliche Angaben
+wie der Name des Besitzers, der als \texttt{owner} gespeichert wird.
+
+Metadaten sind Daten über Daten. Die Daten selbst, etwa der Typ eines
+Nodes oder die Anzahl in einem Stack, sind keine Metadaten.
+
+\subsection{Ein Metadaten-Objekt
+holen}\label{ein-metadaten-objekt-holen}
+
+Kennst du die Position eines Nodes, kannst du seine Metadaten abrufen:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{meta} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_meta}\OperatorTok{(\{} \VariableTok{x} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{2}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{3} \OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Spieler- und ItemStack-Metadaten erhältst du mit
+\texttt{get\_\allowbreak{}meta()}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{pmeta} \OperatorTok{=} \VariableTok{player}\OperatorTok{:}\NormalTok{get\_meta}\OperatorTok{()}
+\KeywordTok{local} \VariableTok{imeta} \OperatorTok{=} \VariableTok{stack}\OperatorTok{:}\NormalTok{get\_meta}\OperatorTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Lesen und Schreiben}\label{lesen-und-schreiben}
+
+Meist liest und schreibst du Metadaten mit den Methoden
+\texttt{get\_\allowbreak{}<typ>()} und
+\texttt{set\_\allowbreak{}<typ>()}. Da Metadaten Strings speichern,
+setzen und lesen die String-Methoden den Wert direkt.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\OperatorTok{(}\VariableTok{meta}\OperatorTok{:}\NormalTok{get\_string}\OperatorTok{(}\StringTok{"foo"}\OperatorTok{))} \CommentTok{{-}{-}\textgreater{} ""}
+\VariableTok{meta}\OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"foo"}\OperatorTok{,} \StringTok{"bar"}\OperatorTok{)}
+\FunctionTok{print}\OperatorTok{(}\VariableTok{meta}\OperatorTok{:}\NormalTok{get\_string}\OperatorTok{(}\StringTok{"foo"}\OperatorTok{))} \CommentTok{{-}{-}\textgreater{} "bar"}
+\end{Highlighting}
+\end{Shaded}
+
+Alle typisierten Getter geben einen neutralen Standardwert zurück, wenn
+der Schlüssel nicht existiert, etwa
+\texttt{\textquotedbl{}\textquotedbl{}} oder \texttt{0}. Mit
+\texttt{get()} erhältst du einen String oder \texttt{nil}.
+
+Metadaten-Objekte sind Referenzen; Änderungen landen also automatisch an
+der Quelle. ItemStacks sind dagegen keine Referenzen; nach einer
+Änderung musst du den ItemStack wieder ins
+Inventar\index{inventar@Inventar} setzen.
+
+Die Getter und Setter für andere Typen wandeln von und nach String um:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\OperatorTok{(}\VariableTok{meta}\OperatorTok{:}\NormalTok{get\_int}\OperatorTok{(}\StringTok{"count"}\OperatorTok{))} \CommentTok{{-}{-}\textgreater{} 0}
+\VariableTok{meta}\OperatorTok{:}\NormalTok{set\_int}\OperatorTok{(}\StringTok{"count"}\OperatorTok{,} \DecValTok{3}\OperatorTok{)}
+\FunctionTok{print}\OperatorTok{(}\VariableTok{meta}\OperatorTok{:}\NormalTok{get\_int}\OperatorTok{(}\StringTok{"count"}\OperatorTok{))} \CommentTok{{-}{-}\textgreater{} 3}
+\FunctionTok{print}\OperatorTok{(}\VariableTok{meta}\OperatorTok{:}\NormalTok{get\_string}\OperatorTok{(}\StringTok{"count"}\OperatorTok{))} \CommentTok{{-}{-}\textgreater{} "3"}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Besondere Schlüssel}\label{besondere-schluxfcssel}
+
+\texttt{infotext} zeigt in Node-Metadaten einen Tooltip an, wenn das
+Fadenkreuz auf den Node zeigt. Das ist nützlich, um Besitzer oder
+Zustand eines Nodes anzuzeigen.
+
+\texttt{description} überschreibt in ItemStack-Metadaten die
+Beschreibung, die beim Überfahren des Stacks im Inventar erscheint.
+Farben kannst du mit
+\texttt{core.\allowbreak{}colorize()}\index{core@\texttt{core}!colorize@\texttt{core.\allowbreak{}colorize}}
+einfügen.
+
+\texttt{owner} ist ein gebräuchlicher Schlüssel für den Namen des
+Spielers, dem das Item oder der Node gehört.
+
+\subsection{Tabellen speichern}\label{tabellen-speichern}
+
+Tabellen müssen in Strings umgewandelt werden, bevor du sie speichern
+kannst. Luanti bietet dafür zwei Formate: Lua und JSON.
+
+Das Lua-Format ist meist deutlich schneller und entspricht der
+Tabellenschreibweise von Lua. JSON ist ein verbreiteterer Standard,
+besser strukturiert und gut geeignet, wenn du Daten mit einem anderen
+Programm austauschen musst. Für JSON gibt es
+\texttt{core.\allowbreak{}write\_\allowbreak{}json()}\index{core@\texttt{core}!write_json@\texttt{core.\allowbreak{}write\_\allowbreak{}json}}
+und
+\texttt{core.\allowbreak{}parse\_\allowbreak{}json()}\index{core@\texttt{core}!parse_json@\texttt{core.\allowbreak{}parse\_\allowbreak{}json}}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{data} \OperatorTok{=} \OperatorTok{\{} \VariableTok{username} \OperatorTok{=} \StringTok{"player1"}\OperatorTok{,} \VariableTok{score} \OperatorTok{=} \DecValTok{1234} \OperatorTok{\}}
+\VariableTok{meta}\OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"foo"}\OperatorTok{,} \VariableTok{core}\OperatorTok{.}\NormalTok{serialize}\OperatorTok{(}\VariableTok{data}\OperatorTok{))}
+
+\VariableTok{data} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{deserialize}\OperatorTok{(}\VariableTok{meta}\OperatorTok{:}\NormalTok{get\_string}\OperatorTok{(}\StringTok{"foo"}\OperatorTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Private Metadaten}\label{private-metadaten}
+
+Standardmäßig werden alle Node-Metadaten an den Client geschickt. Um das
+zu verhindern, kannst du Schlüssel als privat markieren:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{meta}\OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"secret"}\OperatorTok{,} \StringTok{"asd34dn"}\OperatorTok{)}
+\VariableTok{meta}\OperatorTok{:}\NormalTok{mark\_as\_private}\OperatorTok{(}\StringTok{"secret"}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Lua-Tabellen}\label{lua-tabellen}
+
+Mit \texttt{to\_\allowbreak{}table} und
+\texttt{from\_\allowbreak{}table} wandelst du Metadaten in Lua-Tabellen
+um und zurück:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{tmp} \OperatorTok{=} \VariableTok{meta}\OperatorTok{:}\NormalTok{to\_table}\OperatorTok{()}
+\VariableTok{tmp}\OperatorTok{.}\VariableTok{foo} \OperatorTok{=} \StringTok{"bar"}
+\VariableTok{meta}\OperatorTok{:}\NormalTok{from\_table}\OperatorTok{(}\VariableTok{tmp}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Mod-Speicher}\label{mod-speicher}
+
+Der Mod-Speicher\index{mod-speicher@Mod-Speicher} (\emph{mod storage})
+verwendet genau dieselbe API wie Metadaten, auch wenn er technisch
+gesehen keine Metadaten sind. Er gehört jeweils zu einem Mod und kann
+nur während der Ladezeit abgerufen werden, damit Luanti weiß, welcher
+Mod ihn anfordert.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{storage} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_mod\_storage}\OperatorTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+Jetzt kannst du den Speicher genau wie Metadaten verwenden:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{storage}\OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"foo"}\OperatorTok{,} \StringTok{"bar"}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Datenbanken}\label{datenbanken}
+
+Wird ein Mod wahrscheinlich auf Servern eingesetzt und speichert er
+viele Daten, lohnt es sich, eine Datenbank als Speicher anzubieten. Mach
+das optional, indem du trennst, \emph{wie} die Daten gespeichert werden
+und \emph{wo} sie verwendet werden.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{backend}
+\ControlFlowTok{if} \VariableTok{use\_database} \ControlFlowTok{then}
+    \VariableTok{backend} \OperatorTok{=} \FunctionTok{dofile}\OperatorTok{(}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{get\_modpath}\OperatorTok{(}\StringTok{"mymod"}\OperatorTok{)} \OperatorTok{..} \StringTok{"/backend\_sqlite.lua"}
+    \OperatorTok{)}
+\ControlFlowTok{else}
+    \VariableTok{backend} \OperatorTok{=} \FunctionTok{dofile}\OperatorTok{(}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{get\_modpath}\OperatorTok{(}\StringTok{"mymod"}\OperatorTok{)} \OperatorTok{..} \StringTok{"/backend\_storage.lua"}
+    \OperatorTok{)}
+\ControlFlowTok{end}
+
+\VariableTok{backend}\OperatorTok{.}\NormalTok{get\_foo}\OperatorTok{(}\StringTok{"a"}\OperatorTok{)}
+\VariableTok{backend}\OperatorTok{.}\NormalTok{set\_foo}\OperatorTok{(}\StringTok{"a"}\OperatorTok{,} \OperatorTok{\{} \VariableTok{score} \OperatorTok{=} \DecValTok{3} \OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Die Datei \texttt{backend\_\allowbreak{}storage.\allowbreak{}lua}
+enthält dann eine Umsetzung mit dem Mod-Speicher:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{storage} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_mod\_storage}\OperatorTok{()}
+\KeywordTok{local} \VariableTok{backend} \OperatorTok{=} \OperatorTok{\{\}}
+
+\KeywordTok{function} \VariableTok{backend}\OperatorTok{.}\NormalTok{set\_foo}\OperatorTok{(}\VariableTok{key}\OperatorTok{,} \VariableTok{value}\OperatorTok{)}
+    \VariableTok{storage}\OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}\VariableTok{key}\OperatorTok{,} \VariableTok{core}\OperatorTok{.}\NormalTok{serialize}\OperatorTok{(}\VariableTok{value}\OperatorTok{))}
+\KeywordTok{end}
+
+\KeywordTok{function} \VariableTok{backend}\OperatorTok{.}\NormalTok{get\_foo}\OperatorTok{(}\VariableTok{key}\OperatorTok{)}
+    \ControlFlowTok{return} \VariableTok{core}\OperatorTok{.}\NormalTok{deserialize}\OperatorTok{(}\VariableTok{storage}\OperatorTok{:}\NormalTok{get\_string}\OperatorTok{(}\VariableTok{key}\OperatorTok{))}
+\KeywordTok{end}
+
+\ControlFlowTok{return} \VariableTok{backend}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{backend\_\allowbreak{}sqlite.\allowbreak{}lua} macht dasselbe,
+verwendet aber statt des Mod-Speichers die Lua-Bibliothek
+\emph{lsqlite3}.
+
+Für eine Datenbank wie SQLite brauchst du eine unsichere Umgebung
+(\emph{insecure environment}). Das ist eine Tabelle, die nur Mods zur
+Verfügung steht, die der Benutzer ausdrücklich freigegeben hat. Sie
+enthält eine weniger eingeschränkte Kopie der Lua-API, die von
+bösartigen Mods missbraucht werden könnte. Mehr dazu im Kapitel
+Sicherheit~(Kapitel~\ref{ch:quality/security}).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{ie} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{request\_insecure\_environment}\OperatorTok{()}
+\ControlFlowTok{if} \KeywordTok{not} \VariableTok{ie} \ControlFlowTok{then}
+    \FunctionTok{error}\OperatorTok{(}\StringTok{"Bitte mymod zu secure.trusted\_mods hinzufügen"}\OperatorTok{)}
+\ControlFlowTok{end}
+
+\KeywordTok{local} \VariableTok{\_sql} \OperatorTok{=} \VariableTok{ie}\OperatorTok{.}\NormalTok{require}\OperatorTok{(}\StringTok{"lsqlite3"}\OperatorTok{)}
+\CommentTok{{-}{-} globale sqlite3{-}Bibliothek vor anderen Mods verbergen}
+\ControlFlowTok{if} \VariableTok{sqlite3} \ControlFlowTok{then}
+    \VariableTok{sqlite3} \OperatorTok{=} \KeywordTok{nil}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+SQL oder die Bibliothek lsqlite3 zu erklären, würde den Rahmen dieses
+Buches sprengen.
+
+\section{Was soll ich verwenden?}\label{was-soll-ich-verwenden}
+
+Welche Methode passt, hängt davon ab, worauf sich die Daten beziehen,
+wie sie aufgebaut sind und wie groß sie sind. Als Faustregel: Kleine
+Datenmengen gehen bis 10 KB, mittlere bis 10 MB, alles darüber ist groß.
+
+Node-Metadaten sind eine gute Wahl für Daten, die zu einem Node gehören.
+Mittlere Datenmengen lassen sich recht effizient speichern, wenn du sie
+privat markierst.
+
+Item-Metadaten solltest du nur für kleine Datenmengen verwenden, denn
+sie werden immer an den Client geschickt. Außerdem werden die Daten
+jedes Mal kopiert, wenn der Stack bewegt oder aus Lua darauf zugegriffen
+wird.
+
+Der Mod-Speicher eignet sich für mittlere Datenmengen; große Datenmengen
+zu schreiben, kann aber ineffizient sein. Für große Datenmengen nimmst
+du besser eine Datenbank, damit nicht bei jedem Speichern alle Daten
+geschrieben werden müssen.
+
+Datenbanken kommen nur für Server in Frage, weil der Mod für die
+unsichere Umgebung freigegeben werden muss. Für große Datenmengen sind
+sie gut geeignet.
+
+\section{Jetzt bist du dran}\label{jetzt-bist-du-dran}
+
+\begin{itemize}
+\tightlist
+\item
+  Erstelle einen Node, der verschwindet, nachdem er fünfmal geschlagen
+  wurde. (Verwende
+  \texttt{on\_\allowbreak{}punch}\index{callback@Callback!on_punch@\texttt{on\_\allowbreak{}punch}}
+  in der Node-Definition und
+  \texttt{core.\allowbreak{}set\_\allowbreak{}node}\index{core@\texttt{core}!set_node@\texttt{core.\allowbreak{}set\_\allowbreak{}node}}.)
+\end{itemize}

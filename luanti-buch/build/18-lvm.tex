@@ -1,0 +1,240 @@
+\chapter{Lua Voxel Manipulators}
+\label{ch:advmap/lvm}
+
+Die Funktionen aus dem Kapitel Grundlegende
+Kartenoperationen~(Kapitel~\ref{ch:map/environment}) sind bequem und
+einfach zu benutzen, für große Bereiche aber ineffizient. Bei jedem
+Aufruf von \texttt{set\_\allowbreak{}node} oder
+\texttt{get\_\allowbreak{}node} muss dein Mod mit der Engine
+kommunizieren. Das führt zu ständigen einzelnen Kopiervorgängen zwischen
+Engine und Mod, was langsam ist und die Leistung deines Spiels schnell
+verschlechtert. Ein \emph{Lua Voxel Manipulator} (LVM)\index{lvm@LVM}
+kann hier die bessere Wahl sein.
+
+\section{Konzept}\label{konzept}
+
+Mit einem LVM lädst du große Bereiche der Karte in den Speicher deines
+Mods. Diese Daten kannst du dann lesen und schreiben, ohne weiter mit
+der Engine zu kommunizieren und ohne dass
+Callbacks\index{callback@Callback} laufen -- diese Operationen sind also
+sehr schnell. Danach schreibst du den Bereich zurück in die Engine und
+lässt die Beleuchtung berechnen.
+
+\section{Daten in den LVM lesen}\label{daten-in-den-lvm-lesen}
+
+In einen LVM kannst du nur einen Quader laden. Du musst also die
+kleinste und größte Position ermitteln, die du verändern willst. Dann
+erzeugst du einen LVM und liest den Bereich ein, zum Beispiel so:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{vm} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_voxel\_manip}\OperatorTok{()}
+\KeywordTok{local} \VariableTok{emin}\OperatorTok{,} \VariableTok{emax} \OperatorTok{=} \VariableTok{vm}\OperatorTok{:}\NormalTok{read\_from\_map}\OperatorTok{(}\VariableTok{pos1}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Aus Leistungsgründen liest ein LVM fast nie genau den angegebenen
+Bereich, sondern meist einen größeren. Diesen größeren Bereich geben
+\texttt{emin} und \texttt{emax} an (\emph{emerged min pos} und
+\emph{emerged max pos}). Der LVM lädt den Bereich für dich -- egal ob
+dafür aus dem Arbeitsspeicher, von der Festplatte gelesen oder der
+Kartengenerator\index{kartengenerierung@Kartengenerierung} aufgerufen
+werden muss.
+
+\begin{hinweis}{LVMs und Kartengenerierung}
+
+Verwende
+\texttt{core.\allowbreak{}get\_\allowbreak{}voxel\_\allowbreak{}manip()}\index{core@\texttt{core}!get_voxel_manip@\texttt{core.\allowbreak{}get\_\allowbreak{}voxel\_\allowbreak{}manip}}
+nicht in der Kartengenerierung, das kann zu Fehlern führen. Verwende
+dort stattdessen
+\texttt{core.\allowbreak{}get\_\allowbreak{}mapgen\_\allowbreak{}object(\textquotedbl{}voxelmanip\textquotedbl{})}\index{core@\texttt{core}!get_mapgen_object@\texttt{core.\allowbreak{}get\_\allowbreak{}mapgen\_\allowbreak{}object}}.
+
+\end{hinweis}
+
+\section{Nodes lesen}\label{nodes-lesen}
+
+Um die Node-Typen an bestimmten Positionen zu lesen, verwendest du
+\texttt{get\_\allowbreak{}data()}. Die Methode gibt ein flaches Array
+zurück, in dem jeder Eintrag für den Typ eines Nodes steht.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{data} \OperatorTok{=} \VariableTok{vm}\OperatorTok{:}\NormalTok{get\_data}\OperatorTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{param2} und Lichtwerte erhältst du mit
+\texttt{get\_\allowbreak{}light\_\allowbreak{}data()} und
+\texttt{get\_\allowbreak{}param2\_\allowbreak{}data()}.
+
+Mit \texttt{emin} und \texttt{emax} berechnest du, wo ein Node in diesen
+flachen Arrays liegt. Die Hilfsklasse
+\texttt{VoxelArea}\index{voxelarea@\texttt{VoxelArea}} übernimmt die
+Berechnung für dich.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{a} \OperatorTok{=} \VariableTok{VoxelArea}\OperatorTok{:}\NormalTok{new}\OperatorTok{(\{}
+    \VariableTok{MinEdge} \OperatorTok{=} \VariableTok{emin}\OperatorTok{,}
+    \VariableTok{MaxEdge} \OperatorTok{=} \VariableTok{emax}\OperatorTok{,}
+\OperatorTok{\})}
+
+\CommentTok{{-}{-} Index des Nodes ermitteln}
+\KeywordTok{local} \VariableTok{idx} \OperatorTok{=} \VariableTok{a}\OperatorTok{:}\NormalTok{index}\OperatorTok{(}\VariableTok{x}\OperatorTok{,} \VariableTok{y}\OperatorTok{,} \VariableTok{z}\OperatorTok{)}
+
+\CommentTok{{-}{-} Node lesen}
+\FunctionTok{print}\OperatorTok{(}\VariableTok{data}\OperatorTok{[}\VariableTok{idx}\OperatorTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+Dabei fällt auf, dass \texttt{data[idx]} eine ganze Zahl ist. Die Engine
+speichert Nodes aus Leistungsgründen nicht als Strings, sondern als
+Zahl, die \emph{Content-ID\index{content-id@Content-ID}} heißt. Die
+Content-ID eines Node-Typs erhältst du mit
+\texttt{get\_\allowbreak{}content\_\allowbreak{}id()}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{c\_stone} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_content\_id}\OperatorTok{(}\StringTok{"default:stone"}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Dann kannst du prüfen, ob der Node Stein ist:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{idx} \OperatorTok{=} \VariableTok{a}\OperatorTok{:}\NormalTok{index}\OperatorTok{(}\VariableTok{x}\OperatorTok{,} \VariableTok{y}\OperatorTok{,} \VariableTok{z}\OperatorTok{)}
+\ControlFlowTok{if} \VariableTok{data}\OperatorTok{[}\VariableTok{idx}\OperatorTok{]} \OperatorTok{==} \VariableTok{c\_stone} \ControlFlowTok{then}
+    \FunctionTok{print}\OperatorTok{(}\StringTok{"Ist Stein!"}\OperatorTok{)}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Die Content-IDs von Node-Typen können sich während der Ladezeit noch
+ändern. Ermittle sie deshalb nicht während dieser Zeit.
+
+Die Nodes im Datenarray eines LVM liegen in umgekehrter
+Koordinatenreihenfolge. Iteriere deshalb immer in der Reihenfolge
+\texttt{z, y, x}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{for} \VariableTok{z} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{z}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{z} \ControlFlowTok{do}
+    \ControlFlowTok{for} \VariableTok{y} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{y}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{y} \ControlFlowTok{do}
+        \ControlFlowTok{for} \VariableTok{x} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{x}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{x} \ControlFlowTok{do}
+            \CommentTok{{-}{-} vi (voxel index) ist ein üblicher Name}
+            \KeywordTok{local} \VariableTok{vi} \OperatorTok{=} \VariableTok{a}\OperatorTok{:}\NormalTok{index}\OperatorTok{(}\VariableTok{x}\OperatorTok{,} \VariableTok{y}\OperatorTok{,} \VariableTok{z}\OperatorTok{)}
+            \ControlFlowTok{if} \VariableTok{data}\OperatorTok{[}\VariableTok{vi}\OperatorTok{]} \OperatorTok{==} \VariableTok{c\_stone} \ControlFlowTok{then}
+                \FunctionTok{print}\OperatorTok{(}\StringTok{"Ist Stein!"}\OperatorTok{)}
+            \ControlFlowTok{end}
+        \ControlFlowTok{end}
+    \ControlFlowTok{end}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Der Grund dafür liegt in der Rechnerarchitektur. Aus dem Arbeitsspeicher
+zu lesen, ist recht teuer, deshalb haben Prozessoren mehrere
+Cache-Ebenen. Liegen die angeforderten Daten im Cache, sind sie sehr
+schnell verfügbar. Liegen sie nicht dort, kommt es zu einem
+\emph{Cache-Miss}, und die Daten werden aus dem Arbeitsspeicher geholt.
+Dabei werden auch die umliegenden Daten mitgeholt und ersetzen Daten im
+Cache, weil das Programm sehr wahrscheinlich bald Daten aus der Nähe
+anfordert. Eine gute Optimierungsregel ist daher, Daten der Reihe nach
+zu lesen und \emph{Cache-Thrashing} zu vermeiden.
+
+\section{Nodes schreiben}\label{nodes-schreiben}
+
+Zuerst setzt du die neue Content-ID im Datenarray:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{c\_air} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_content\_id}\OperatorTok{(}\StringTok{"air"}\OperatorTok{)}
+
+\ControlFlowTok{for} \VariableTok{z} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{z}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{z} \ControlFlowTok{do}
+    \ControlFlowTok{for} \VariableTok{y} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{y}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{y} \ControlFlowTok{do}
+        \ControlFlowTok{for} \VariableTok{x} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{x}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{x} \ControlFlowTok{do}
+            \KeywordTok{local} \VariableTok{vi} \OperatorTok{=} \VariableTok{a}\OperatorTok{:}\NormalTok{index}\OperatorTok{(}\VariableTok{x}\OperatorTok{,} \VariableTok{y}\OperatorTok{,} \VariableTok{z}\OperatorTok{)}
+            \ControlFlowTok{if} \VariableTok{data}\OperatorTok{[}\VariableTok{vi}\OperatorTok{]} \OperatorTok{==} \VariableTok{c\_stone} \ControlFlowTok{then}
+                \VariableTok{data}\OperatorTok{[}\VariableTok{vi}\OperatorTok{]} \OperatorTok{=} \VariableTok{c\_air}
+            \ControlFlowTok{end}
+        \ControlFlowTok{end}
+    \ControlFlowTok{end}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Bist du mit dem Setzen fertig, lädst du das Datenarray zurück in die
+Engine:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{vm}\OperatorTok{:}\NormalTok{set\_data}\OperatorTok{(}\VariableTok{data}\OperatorTok{)}
+\VariableTok{vm}\OperatorTok{:}\NormalTok{write\_to\_map}\OperatorTok{(}\KeywordTok{true}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Für Licht- und \texttt{param2}-Daten gibt es die passend benannten
+Methoden \texttt{set\_\allowbreak{}light\_\allowbreak{}data()} und
+\texttt{set\_\allowbreak{}param2\_\allowbreak{}data()}.
+
+\texttt{write\_\allowbreak{}to\_\allowbreak{}map()} erwartet einen
+Wahrheitswert: \texttt{true}, wenn die Beleuchtung berechnet werden
+soll. Übergibst du \texttt{false}, musst du die Beleuchtung später mit
+\texttt{core.\allowbreak{}fix\_\allowbreak{}light}\index{core@\texttt{core}!fix_light@\texttt{core.\allowbreak{}fix\_\allowbreak{}light}}
+neu berechnen.
+
+\section{Beispiel}\label{beispiel}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \KeywordTok{function}\NormalTok{ grass\_to\_dirt}\OperatorTok{(}\VariableTok{pos1}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{)}
+    \KeywordTok{local} \VariableTok{c\_dirt} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_content\_id}\OperatorTok{(}\StringTok{"default:dirt"}\OperatorTok{)}
+    \KeywordTok{local} \VariableTok{c\_grass} \OperatorTok{=}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{get\_content\_id}\OperatorTok{(}\StringTok{"default:dirt\_with\_grass"}\OperatorTok{)}
+
+    \CommentTok{{-}{-} Daten in den LVM lesen}
+    \KeywordTok{local} \VariableTok{vm} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_voxel\_manip}\OperatorTok{()}
+    \KeywordTok{local} \VariableTok{emin}\OperatorTok{,} \VariableTok{emax} \OperatorTok{=} \VariableTok{vm}\OperatorTok{:}\NormalTok{read\_from\_map}\OperatorTok{(}\VariableTok{pos1}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{)}
+    \KeywordTok{local} \VariableTok{a} \OperatorTok{=} \VariableTok{VoxelArea}\OperatorTok{:}\NormalTok{new}\OperatorTok{(\{}
+        \VariableTok{MinEdge} \OperatorTok{=} \VariableTok{emin}\OperatorTok{,}
+        \VariableTok{MaxEdge} \OperatorTok{=} \VariableTok{emax}\OperatorTok{,}
+    \OperatorTok{\})}
+    \KeywordTok{local} \VariableTok{data} \OperatorTok{=} \VariableTok{vm}\OperatorTok{:}\NormalTok{get\_data}\OperatorTok{()}
+
+    \CommentTok{{-}{-} Daten ändern}
+    \ControlFlowTok{for} \VariableTok{z} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{z}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{z} \ControlFlowTok{do}
+        \ControlFlowTok{for} \VariableTok{y} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{y}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{y} \ControlFlowTok{do}
+            \ControlFlowTok{for} \VariableTok{x} \OperatorTok{=} \VariableTok{pos1}\OperatorTok{.}\VariableTok{x}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{.}\VariableTok{x} \ControlFlowTok{do}
+                \KeywordTok{local} \VariableTok{vi} \OperatorTok{=} \VariableTok{a}\OperatorTok{:}\NormalTok{index}\OperatorTok{(}\VariableTok{x}\OperatorTok{,} \VariableTok{y}\OperatorTok{,} \VariableTok{z}\OperatorTok{)}
+                \ControlFlowTok{if} \VariableTok{data}\OperatorTok{[}\VariableTok{vi}\OperatorTok{]} \OperatorTok{==} \VariableTok{c\_grass} \ControlFlowTok{then}
+                    \VariableTok{data}\OperatorTok{[}\VariableTok{vi}\OperatorTok{]} \OperatorTok{=} \VariableTok{c\_dirt}
+                \ControlFlowTok{end}
+            \ControlFlowTok{end}
+        \ControlFlowTok{end}
+    \ControlFlowTok{end}
+
+    \CommentTok{{-}{-} Daten schreiben}
+    \VariableTok{vm}\OperatorTok{:}\NormalTok{set\_data}\OperatorTok{(}\VariableTok{data}\OperatorTok{)}
+    \VariableTok{vm}\OperatorTok{:}\NormalTok{write\_to\_map}\OperatorTok{(}\KeywordTok{true}\OperatorTok{)}
+\KeywordTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Jetzt bist du dran}\label{jetzt-bist-du-dran}
+
+\begin{itemize}
+\tightlist
+\item
+  Schreibe
+  \texttt{replace\_\allowbreak{}in\_\allowbreak{}area(from, to, pos1, pos2)},
+  das im angegebenen Bereich jedes Vorkommen von \texttt{from} durch
+  \texttt{to} ersetzt; \texttt{from} und \texttt{to} sind Node-Namen.
+\item
+  Schreibe eine Funktion, die alle Truhen um 90° dreht.
+\item
+  Schreibe eine Funktion, die mit einem LVM bemoosten Bruchstein auf
+  benachbarten Stein und Bruchstein übergreifen lässt. Breitet sich der
+  Moosbewuchs bei deiner Umsetzung jedes Mal weiter als einen Node aus?
+  Wenn ja, wie könntest du das verhindern?
+\end{itemize}

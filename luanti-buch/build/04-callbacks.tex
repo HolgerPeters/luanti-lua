@@ -1,0 +1,276 @@
+\chapter{Node- und Item-Callbacks}
+\label{ch:items/callbacks}
+
+Luanti setzt beim Modding stark auf Callbacks.\index{callback@Callback}
+Ein Callback ist eine Funktion, die du einer API übergibst und die
+aufgerufen wird, wenn ein Ereignis eintritt. Du kannst zum Beispiel in
+einer Node-Definition eine Funktion
+\texttt{on\_\allowbreak{}punch}\index{callback@Callback!on_punch@\texttt{on\_\allowbreak{}punch}}
+angeben, die aufgerufen wird, wenn ein Spieler den Node schlägt. Es gibt
+auch globale Callbacks wie
+\texttt{core.\allowbreak{}register\_\allowbreak{}on\_\allowbreak{}punchnode}\index{core@\texttt{core}!register_on_punchnode@\texttt{core.\allowbreak{}register\_\allowbreak{}on\_\allowbreak{}punchnode}},
+die Ereignisse für alle Nodes empfangen.
+
+\section{Item-Callbacks}\label{item-callbacks}
+
+Hat ein Spieler einen Node, ein Craftitem\index{craftitem@Craftitem}
+oder ein Werkzeug im Inventar,\index{inventar@Inventar} kann er damit
+bestimmte Ereignisse auslösen:
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2821}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3846}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Callback
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Standardbelegung
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Standardwert
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{on\_\allowbreak{}use} & Linksklick & \texttt{nil} \\
+\texttt{on\_\allowbreak{}place} & Rechtsklick auf einen Node &
+\texttt{core.\allowbreak{}item\_\allowbreak{}place} \\
+\texttt{on\_\allowbreak{}secondary\_\allowbreak{}use} & Rechtsklick ins
+Leere &
+\texttt{core.\allowbreak{}item\_\allowbreak{}secondary\_\allowbreak{}use}
+(tut nichts) \\
+\texttt{on\_\allowbreak{}drop} & Q &
+\texttt{core.\allowbreak{}item\_\allowbreak{}drop} \\
+\texttt{after\_\allowbreak{}use} & Abbauen eines Nodes & \texttt{nil} \\
+\end{longtable}
+
+\subsection{on\_use}\label{on_use}
+
+Hat ein Item einen
+\texttt{on\_\allowbreak{}use}\index{callback@Callback!on_use@\texttt{on\_\allowbreak{}use}}-Callback,
+kann es nicht mehr zum Abbauen von Nodes verwendet werden. Ein typischer
+Einsatz von \texttt{on\_\allowbreak{}use} sind Lebensmittel:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craftitem}\OperatorTok{(}\StringTok{"mymod:mudpie"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Alien{-}Matschkuchen"}\OperatorTok{,}
+    \VariableTok{inventory\_image} \OperatorTok{=} \StringTok{"myfood\_mudpie.png"}\OperatorTok{,}
+    \VariableTok{on\_use} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{item\_eat}\OperatorTok{(}\DecValTok{20}\OperatorTok{),}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Die Zahl, die du
+\texttt{core.\allowbreak{}item\_\allowbreak{}eat}\index{core@\texttt{core}!item_eat@\texttt{core.\allowbreak{}item\_\allowbreak{}eat}}
+übergibst, ist die Anzahl der
+Lebenspunkte,\index{lebenspunkte@Lebenspunkte} die der Verzehr heilt.
+Jedes Herz des Spielers ist zwei Lebenspunkte wert. Ein Spieler hat
+normalerweise bis zu 10 Herzen, also 20 Lebenspunkte.
+
+\texttt{core.\allowbreak{}item\_\allowbreak{}eat()} ist eine Funktion,
+die eine Funktion zurückgibt; diese wird als
+\texttt{on\_\allowbreak{}use}-Callback eingetragen. Der Code oben ist
+also gleichbedeutend mit:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craftitem}\OperatorTok{(}\StringTok{"mymod:mudpie"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Alien{-}Matschkuchen"}\OperatorTok{,}
+    \VariableTok{inventory\_image} \OperatorTok{=} \StringTok{"myfood\_mudpie.png"}\OperatorTok{,}
+    \VariableTok{on\_use} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(...)}
+        \ControlFlowTok{return} \VariableTok{core}\OperatorTok{.}\NormalTok{do\_item\_eat}\OperatorTok{(}\DecValTok{20}\OperatorTok{,} \KeywordTok{nil}\OperatorTok{,} \OperatorTok{...)}
+    \KeywordTok{end}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Wenn du verstehst, dass \texttt{item\_\allowbreak{}eat} einfach eine
+Funktion zurückgibt, kannst du sie abwandeln und komplexeres Verhalten
+einbauen, etwa einen eigenen Sound abspielen.
+
+\subsection{on\_place und
+on\_secondary\_use}\label{on_place-und-on_secondary_use}
+
+\texttt{on\_\allowbreak{}place}\index{callback@Callback!on_place@\texttt{on\_\allowbreak{}place}}
+wird aufgerufen, wenn der Spieler auf einen Node zeigt,
+\texttt{on\_\allowbreak{}secondary\_\allowbreak{}use}\index{callback@Callback!on_secondary_use@\texttt{on\_\allowbreak{}secondary\_\allowbreak{}use}},
+wenn er das nicht tut.
+
+Beide Callbacks werden für alle Item-Arten aufgerufen.
+\texttt{on\_\allowbreak{}place} ist standardmäßig
+\texttt{core.\allowbreak{}item\_\allowbreak{}place}\index{core@\texttt{core}!item_place@\texttt{core.\allowbreak{}item\_\allowbreak{}place}};
+diese Funktion ruft entweder den
+\texttt{on\_\allowbreak{}rightclick}\index{callback@Callback!on_rightclick@\texttt{on\_\allowbreak{}rightclick}}-Callback
+des anvisierten Nodes auf oder platziert das gehaltene Item, falls es
+ein Node ist.
+
+\subsection{on\_drop}\label{on_drop}
+
+\texttt{on\_\allowbreak{}drop}\index{callback@Callback!on_drop@\texttt{on\_\allowbreak{}drop}}
+wird aufgerufen, wenn der Spieler ein Item fallen lassen will, etwa mit
+der Taste Q oder indem er es aus dem Inventar herauszieht. Standardmäßig
+ist das
+\texttt{core.\allowbreak{}item\_\allowbreak{}drop}\index{core@\texttt{core}!item_drop@\texttt{core.\allowbreak{}item\_\allowbreak{}drop}},
+die das Fallenlassen übernimmt.
+
+\subsection{after\_use}\label{after_use}
+
+\texttt{after\_\allowbreak{}use}\index{callback@Callback!after_use@\texttt{after\_\allowbreak{}use}}
+wird beim Abbauen eines Nodes aufgerufen und erlaubt dir, selbst
+festzulegen, wie sich ein Werkzeug abnutzt. Fehlt
+\texttt{after\_\allowbreak{}use}, entspricht das diesem Code:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{after\_use} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}\VariableTok{itemstack}\OperatorTok{,} \VariableTok{user}\OperatorTok{,} \VariableTok{node}\OperatorTok{,} \VariableTok{digparams}\OperatorTok{)}
+    \VariableTok{itemstack}\OperatorTok{:}\NormalTok{add\_wear}\OperatorTok{(}\VariableTok{digparams}\OperatorTok{.}\VariableTok{wear}\OperatorTok{)}
+    \ControlFlowTok{return} \VariableTok{itemstack}
+\KeywordTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+\section{item\_place oder
+place\_item?}\label{item_place-oder-place_item}
+
+Die Luanti-API bringt viele fertige Callback-Implementierungen mit, die
+du verwenden kannst. Sie sind nach dem Schema \emph{Typ zuerst} benannt,
+zum Beispiel \texttt{core.\allowbreak{}item\_\allowbreak{}place} und
+\texttt{core.\allowbreak{}node\_\allowbreak{}dig}\index{core@\texttt{core}!node_dig@\texttt{core.\allowbreak{}node\_\allowbreak{}dig}}.
+Manche werden direkt eingesetzt, andere sind Funktionen, die den
+Callback erst zurückgeben:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_item}\OperatorTok{(}\StringTok{"mymod:example"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{on\_place} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\VariableTok{item\_place}\OperatorTok{,}
+    \VariableTok{on\_use} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{item\_eat}\OperatorTok{(}\DecValTok{10}\OperatorTok{),}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Außerdem enthält die API Funktionen, die etwas \emph{tun}. Sie heißen
+verwirrend ähnlich wie die Callback-Implementierungen, beginnen aber mit
+dem Verb. Beispiele sind
+\texttt{core.\allowbreak{}place\_\allowbreak{}node}\index{core@\texttt{core}!place_node@\texttt{core.\allowbreak{}place\_\allowbreak{}node}}
+und
+\texttt{core.\allowbreak{}dig\_\allowbreak{}node}\index{core@\texttt{core}!dig_node@\texttt{core.\allowbreak{}dig\_\allowbreak{}node}}:
+Mit ihnen kannst du Nodes abbauen und platzieren, mit ähnlicher Wirkung,
+als täte es ein Spieler.
+
+\section{Node-Callbacks}\label{node-callbacks}
+
+Solange ein Node in einem Inventar liegt, verwendet er wie oben
+beschrieben Item-Callbacks. Ist er in der Welt platziert, verwendet er
+Node-Callbacks. Davon gibt es sehr viele, zu viele für dieses Buch;
+einige davon kommen aber in späteren Kapiteln vor.
+
+Mehrere dieser Callbacks betreffen Node-Operationen wie das Platzieren
+und Entfernen in der Welt. Wichtig: Aus Leistungsgründen werden sie bei
+Massenänderungen -- also wenn sehr viele Nodes auf einmal gesetzt werden
+-- nicht aufgerufen. Du kannst dich also nicht darauf verlassen, dass
+sie immer ausgelöst werden.
+
+\subsection{Rechtsklick und
+Platzieren}\label{rechtsklick-und-platzieren}
+
+Klickt der Spieler mit einem Item rechts, während er auf einen Node
+zeigt, wird der \texttt{on\_\allowbreak{}place}-Callback des Items
+aufgerufen, standardmäßig
+\texttt{core.\allowbreak{}item\_\allowbreak{}place}. Hat der anvisierte
+Node einen \texttt{on\_\allowbreak{}rightclick}-Callback und hält der
+Spieler die Schleichtaste (Shift) \emph{nicht} gedrückt, wird
+\texttt{on\_\allowbreak{}rightclick} aufgerufen. Andernfalls platziert
+\texttt{core.\allowbreak{}item\_\allowbreak{}place} den Node.
+
+Beim Platzieren eines Nodes werden sowohl
+\texttt{on\_\allowbreak{}construct}\index{callback@Callback!on_construct@\texttt{on\_\allowbreak{}construct}}
+als auch
+\texttt{after\_\allowbreak{}place\_\allowbreak{}node}\index{callback@Callback!after_place_node@\texttt{after\_\allowbreak{}place\_\allowbreak{}node}}
+aufgerufen. \texttt{on\_\allowbreak{}construct} wird bei jedem Setzen
+eines Nodes außerhalb von Massenänderungen ausgelöst und erhält nur die
+Position des Nodes.
+\texttt{after\_\allowbreak{}place\_\allowbreak{}node} wird nur beim
+Platzieren aufgerufen und bekommt daher mehr Informationen, etwa den
+Platzierenden und den Itemstack.\index{itemstack@\texttt{ItemStack}}
+
+Beachte, dass nicht nur Spieler Nodes platzieren können; auch Mobs und
+Mods tun das häufig. Deshalb kann \texttt{placer} ein Spieler, eine
+Entity\index{entity@Entity} oder \texttt{nil} sein.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_node}\OperatorTok{(}\StringTok{"mymod:mynode"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{on\_rightclick} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}
+        \VariableTok{pos}\OperatorTok{,}
+        \VariableTok{node}\OperatorTok{,}
+        \VariableTok{clicker}\OperatorTok{,}
+        \VariableTok{itemstack}\OperatorTok{,}
+        \VariableTok{pointed\_thing}
+    \OperatorTok{)}
+        \ControlFlowTok{if} \VariableTok{clicker}\OperatorTok{:}\NormalTok{is\_player}\OperatorTok{()} \ControlFlowTok{then}
+            \VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_player}\OperatorTok{(}
+                \VariableTok{clicker}\OperatorTok{:}\NormalTok{get\_player\_name}\OperatorTok{(),}
+                \StringTok{"Hallo Welt!"}
+            \OperatorTok{)}
+        \ControlFlowTok{end}
+    \KeywordTok{end}\OperatorTok{,}
+    \VariableTok{on\_construct} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}\VariableTok{pos}\OperatorTok{)}
+        \KeywordTok{local} \VariableTok{meta} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_meta}\OperatorTok{(}\VariableTok{pos}\OperatorTok{)}
+        \VariableTok{meta}\OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}\StringTok{"infotext"}\OperatorTok{,} \StringTok{"Mein Node!"}\OperatorTok{)}
+    \KeywordTok{end}\OperatorTok{,}
+    \VariableTok{after\_place\_node} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}
+        \VariableTok{pos}\OperatorTok{,}
+        \VariableTok{placer}\OperatorTok{,}
+        \VariableTok{itemstack}\OperatorTok{,}
+        \VariableTok{pointed\_thing}
+    \OperatorTok{)}
+        \CommentTok{{-}{-} placer immer prüfen}
+        \ControlFlowTok{if} \VariableTok{placer} \KeywordTok{and} \VariableTok{placer}\OperatorTok{:}\NormalTok{is\_player}\OperatorTok{()} \ControlFlowTok{then}
+            \KeywordTok{local} \VariableTok{meta} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_meta}\OperatorTok{(}\VariableTok{pos}\OperatorTok{)}
+            \VariableTok{meta}\OperatorTok{:}\NormalTok{set\_string}\OperatorTok{(}
+                \StringTok{"owner"}\OperatorTok{,}
+                \VariableTok{placer}\OperatorTok{:}\NormalTok{get\_player\_name}\OperatorTok{()}
+            \OperatorTok{)}
+        \ControlFlowTok{end}
+    \KeywordTok{end}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Schlagen und Abbauen}\label{schlagen-und-abbauen}
+
+Schlagen heißt, dass der Spieler kurz links klickt. Hat das gehaltene
+Item einen \texttt{on\_\allowbreak{}use}-Callback, wird dieser
+aufgerufen, andernfalls der \texttt{on\_\allowbreak{}punch}-Callback des
+anvisierten Nodes.
+
+Versucht der Spieler, einen Node abzubauen, wird dessen
+\texttt{on\_\allowbreak{}dig}\index{callback@Callback!on_dig@\texttt{on\_\allowbreak{}dig}}-Callback
+aufgerufen. Standardmäßig ist das
+\texttt{core.\allowbreak{}node\_\allowbreak{}dig}: Die Funktion prüft
+den Gebietsschutz, nutzt das Werkzeug ab, entfernt den Node und führt
+den
+\texttt{after\_\allowbreak{}dig\_\allowbreak{}node}\index{callback@Callback!after_dig_node@\texttt{after\_\allowbreak{}dig\_\allowbreak{}node}}-Callback
+aus.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_node}\OperatorTok{(}\StringTok{"mymod:mynode"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{on\_punch} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \VariableTok{node}\OperatorTok{,} \VariableTok{puncher}\OperatorTok{,} \VariableTok{pointed\_thing}\OperatorTok{)}
+        \ControlFlowTok{if} \VariableTok{puncher}\OperatorTok{:}\NormalTok{is\_player}\OperatorTok{()} \ControlFlowTok{then}
+            \VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_player}\OperatorTok{(}
+                \VariableTok{puncher}\OperatorTok{:}\NormalTok{get\_player\_name}\OperatorTok{(),}
+                \StringTok{"Au!"}
+            \OperatorTok{)}
+        \ControlFlowTok{end}
+    \KeywordTok{end}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{\ldots{} und mehr!}\label{und-mehr}
+
+Eine Liste aller Node-Callbacks und weitere Details zu den oben
+genannten findest du in der Lua-API-Referenz von Luanti.

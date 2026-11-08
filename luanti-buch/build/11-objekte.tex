@@ -1,0 +1,418 @@
+\chapter{Objekte, Spieler und Entities}
+\label{ch:map/objects}
+
+In diesem Kapitel lernst du, wie du Objekte veränderst und eigene
+definierst.
+
+\section{Was sind Objekte, Spieler und
+Entities?}\label{was-sind-objekte-spieler-und-entities}
+
+Spieler und Entities\index{entity@Entity} sind beides Objekte. Ein
+Objekt ist etwas, das sich unabhängig vom Node-Gitter bewegen kann und
+Eigenschaften wie Geschwindigkeit und Größe hat. Objekte sind keine
+Items und haben ein eigenes Registrierungssystem.
+
+Zwischen Spielern und Entities gibt es einige Unterschiede. Der
+wichtigste: Spieler werden von Menschen gesteuert, Entities von Mods.
+Deshalb können Mods die Geschwindigkeit eines Spielers nicht setzen --
+Spieler werden auf dem Client berechnet, Entities auf dem Server. Ein
+weiterer Unterschied: Spieler sorgen dafür, dass Mapblöcke geladen
+werden, Entities werden dagegen einfach gespeichert und inaktiv.
+
+Verwischt wird diese Unterscheidung dadurch, dass Entities über eine
+Tabelle gesteuert werden, die \emph{Lua-Entity} heißt; dazu später mehr.
+
+\section{Position und
+Geschwindigkeit}\label{position-und-geschwindigkeit}
+
+Mit \texttt{get\_\allowbreak{}pos} und \texttt{set\_\allowbreak{}pos}
+liest und setzt du die Position eines Objekts.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{object} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_player\_by\_name}\OperatorTok{(}\StringTok{"bob"}\OperatorTok{)}
+\KeywordTok{local} \VariableTok{pos} \OperatorTok{=} \VariableTok{object}\OperatorTok{:}\NormalTok{get\_pos}\OperatorTok{()}
+\VariableTok{object}\OperatorTok{:}\NormalTok{set\_pos}\OperatorTok{(\{} \VariableTok{x} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{x}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{y} \OperatorTok{+} \DecValTok{1}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{z} \OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{set\_\allowbreak{}pos} setzt die Position sofort, ohne
+Animation. Soll das Objekt sich fließend an die neue Position bewegen,
+verwendest du \texttt{move\_\allowbreak{}to}. Das funktioniert leider
+nur bei Entities.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{object}\OperatorTok{:}\NormalTok{move\_to}\OperatorTok{(\{} \VariableTok{x} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{x}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{y} \OperatorTok{+} \DecValTok{1}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{z} \OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Bei Entities musst du immer an die Netzwerklatenz denken. Im Idealfall
+kämen Nachrichten über Bewegungen sofort an, in der richtigen
+Reihenfolge und in ähnlichen Abständen, wie du sie gesendet hast.
+Außerhalb des Einzelspielermodus ist die Welt aber nicht ideal.
+Nachrichten brauchen eine Weile. Positionsnachrichten können in falscher
+Reihenfolge ankommen, sodass manche
+\texttt{set\_\allowbreak{}pos}-Aufrufe übersprungen werden -- es hat
+keinen Sinn, an eine Position zu springen, die älter ist als die aktuell
+bekannte. Bewegungen kommen womöglich nicht in gleichmäßigen Abständen
+an, was sie für Animationen schwer nutzbar macht. All das führt dazu,
+dass der Client etwas anderes sieht als der Server. Dessen solltest du
+dir bewusst sein.
+
+\section{Objekteigenschaften}\label{objekteigenschaften}
+
+Objekteigenschaften sagen dem Client, wie er ein Objekt darstellen und
+behandeln soll. Eigene Eigenschaften kannst du nicht festlegen, denn die
+Eigenschaften sind per Definition für die Engine bestimmt.
+
+Anders als Nodes haben Objekte kein festes, sondern ein veränderliches
+Aussehen. Wie ein Objekt aussieht -- und einiges mehr --, kannst du
+jederzeit ändern, indem du seine Eigenschaften aktualisierst.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{object}\OperatorTok{:}\NormalTok{set\_properties}\OperatorTok{(\{}
+    \VariableTok{visual} \OperatorTok{=} \StringTok{"mesh"}\OperatorTok{,}
+    \VariableTok{mesh} \OperatorTok{=} \StringTok{"character.b3d"}\OperatorTok{,}
+    \VariableTok{textures} \OperatorTok{=} \OperatorTok{\{} \StringTok{"character\_texture.png"} \OperatorTok{\},}
+    \VariableTok{visual\_size} \OperatorTok{=} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{1} \OperatorTok{\},}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Die geänderten Eigenschaften werden an alle Spieler in Reichweite
+geschickt. So erreichst du sehr günstig viel Abwechslung, etwa
+unterschiedliche Skins für jeden Spieler.
+
+Wie der nächste Abschnitt zeigt, können Entities in ihrer Definition
+Anfangseigenschaften haben. Die Standardeigenschaften von Spielern sind
+dagegen in der Engine festgelegt; für neu beigetretene Spieler setzt du
+die Eigenschaften deshalb mit \texttt{set\_\allowbreak{}properties()} in
+\texttt{on\_\allowbreak{}joinplayer}\index{callback@Callback!on_joinplayer@\texttt{on\_\allowbreak{}joinplayer}}.
+
+\section{Entities}\label{entities}
+
+Eine Entity hat eine Definitionstabelle, die einer Item-Definition
+ähnelt. Sie kann Callback-Methoden, Anfangseigenschaften des Objekts und
+eigene Felder enthalten.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{MyEntity} \OperatorTok{=} \OperatorTok{\{}
+    \VariableTok{initial\_properties} \OperatorTok{=} \OperatorTok{\{}
+        \VariableTok{hp\_max} \OperatorTok{=} \DecValTok{1}\OperatorTok{,}
+        \VariableTok{physical} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+        \VariableTok{collide\_with\_objects} \OperatorTok{=} \KeywordTok{false}\OperatorTok{,}
+        \VariableTok{collisionbox} \OperatorTok{=} \OperatorTok{\{} \OperatorTok{{-}}\DecValTok{0.3}\OperatorTok{,} \OperatorTok{{-}}\DecValTok{0.3}\OperatorTok{,} \OperatorTok{{-}}\DecValTok{0.3}\OperatorTok{,} \DecValTok{0.3}\OperatorTok{,} \DecValTok{0.3}\OperatorTok{,} \DecValTok{0.3} \OperatorTok{\},}
+        \VariableTok{visual} \OperatorTok{=} \StringTok{"wielditem"}\OperatorTok{,}
+        \VariableTok{visual\_size} \OperatorTok{=} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{0.4}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{0.4} \OperatorTok{\},}
+        \VariableTok{textures} \OperatorTok{=} \OperatorTok{\{} \StringTok{""} \OperatorTok{\},}
+        \VariableTok{spritediv} \OperatorTok{=} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{1} \OperatorTok{\},}
+        \VariableTok{initial\_sprite\_basepos} \OperatorTok{=} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{0}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{0} \OperatorTok{\},}
+    \OperatorTok{\},}
+
+    \VariableTok{message} \OperatorTok{=} \StringTok{"Standardnachricht"}\OperatorTok{,}
+\OperatorTok{\}}
+
+\KeywordTok{function} \VariableTok{MyEntity}\OperatorTok{:}\NormalTok{set\_message}\OperatorTok{(}\VariableTok{msg}\OperatorTok{)}
+    \VariableTok{self}\OperatorTok{.}\VariableTok{message} \OperatorTok{=} \VariableTok{msg}
+\KeywordTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+In einem sehr wichtigen Punkt unterscheiden sich Entity-Definitionen von
+Item-Definitionen: Wird eine Entity \emph{emerged} (also geladen oder
+erzeugt), wird für sie eine neue Tabelle angelegt, die von der
+Definitionstabelle \emph{erbt}.
+
+Über das ObjectRef\index{objectref@\texttt{ObjectRef}} kommst du an die
+Entity-Tabelle und umgekehrt:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{entity} \OperatorTok{=} \VariableTok{object}\OperatorTok{:}\NormalTok{get\_luaentity}\OperatorTok{()}
+\KeywordTok{local} \VariableTok{object} \OperatorTok{=} \VariableTok{entity}\OperatorTok{.}\VariableTok{object}
+\FunctionTok{print}\OperatorTok{(}
+    \StringTok{"Entity ist bei "}
+        \OperatorTok{..} \VariableTok{core}\OperatorTok{.}\NormalTok{pos\_to\_string}\OperatorTok{(}\VariableTok{object}\OperatorTok{:}\NormalTok{get\_pos}\OperatorTok{())}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Für Entities gibt es eine Reihe von Callbacks.\index{callback@Callback}
+Eine vollständige Liste findest du in der Lua-API-Referenz\footnote{\url{https://api.luanti.org/minetest-namespace-reference/\#registered-definition-tables}}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{function} \VariableTok{MyEntity}\OperatorTok{:}\NormalTok{on\_step}\OperatorTok{(}\VariableTok{dtime}\OperatorTok{)}
+    \KeywordTok{local} \VariableTok{pos} \OperatorTok{=} \VariableTok{self}\OperatorTok{.}\VariableTok{object}\OperatorTok{:}\NormalTok{get\_pos}\OperatorTok{()}
+    \KeywordTok{local} \VariableTok{pos\_down} \OperatorTok{=}
+        \VariableTok{vector}\OperatorTok{.}\NormalTok{subtract}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \VariableTok{vector}\OperatorTok{.}\NormalTok{new}\OperatorTok{(}\DecValTok{0}\OperatorTok{,} \DecValTok{1}\OperatorTok{,} \DecValTok{0}\OperatorTok{))}
+
+    \KeywordTok{local} \VariableTok{delta}
+    \ControlFlowTok{if} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_node}\OperatorTok{(}\VariableTok{pos\_down}\OperatorTok{).}\VariableTok{name} \OperatorTok{==} \StringTok{"air"} \ControlFlowTok{then}
+        \VariableTok{delta} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{new}\OperatorTok{(}\DecValTok{0}\OperatorTok{,} \OperatorTok{{-}}\DecValTok{1}\OperatorTok{,} \DecValTok{0}\OperatorTok{)}
+    \ControlFlowTok{elseif} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_node}\OperatorTok{(}\VariableTok{pos}\OperatorTok{).}\VariableTok{name} \OperatorTok{==} \StringTok{"air"} \ControlFlowTok{then}
+        \VariableTok{delta} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{new}\OperatorTok{(}\DecValTok{0}\OperatorTok{,} \DecValTok{0}\OperatorTok{,} \DecValTok{1}\OperatorTok{)}
+    \ControlFlowTok{else}
+        \VariableTok{delta} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{new}\OperatorTok{(}\DecValTok{0}\OperatorTok{,} \DecValTok{1}\OperatorTok{,} \DecValTok{0}\OperatorTok{)}
+    \ControlFlowTok{end}
+
+    \VariableTok{delta} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{multiply}\OperatorTok{(}\VariableTok{delta}\OperatorTok{,} \VariableTok{dtime}\OperatorTok{)}
+
+    \VariableTok{self}\OperatorTok{.}\VariableTok{object}\OperatorTok{:}\NormalTok{move\_to}\OperatorTok{(}\VariableTok{vector}\OperatorTok{.}\NormalTok{add}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \VariableTok{delta}\OperatorTok{))}
+\KeywordTok{end}
+
+\KeywordTok{function} \VariableTok{MyEntity}\OperatorTok{:}\NormalTok{on\_punch}\OperatorTok{(}\VariableTok{hitter}\OperatorTok{)}
+    \VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_player}\OperatorTok{(}
+        \VariableTok{hitter}\OperatorTok{:}\NormalTok{get\_player\_name}\OperatorTok{(),}
+        \VariableTok{self}\OperatorTok{.}\VariableTok{message}
+    \OperatorTok{)}
+\KeywordTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Wenn du diese Entity erzeugst und benutzt, fällt dir auf, dass die
+Nachricht vergessen wird, sobald die Entity inaktiv und wieder aktiv
+wird. Das liegt daran, dass die Nachricht nicht gespeichert wird. Statt
+einfach die ganze Entity-Tabelle zu speichern, überlässt Luanti dir, was
+gespeichert wird. \emph{Staticdata} ist ein String mit allen eigenen
+Informationen, die gespeichert werden müssen.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{function} \VariableTok{MyEntity}\OperatorTok{:}\NormalTok{get\_staticdata}\OperatorTok{()}
+    \ControlFlowTok{return} \VariableTok{core}\OperatorTok{.}\NormalTok{write\_json}\OperatorTok{(\{}
+        \VariableTok{message} \OperatorTok{=} \VariableTok{self}\OperatorTok{.}\VariableTok{message}\OperatorTok{,}
+    \OperatorTok{\})}
+\KeywordTok{end}
+
+\KeywordTok{function} \VariableTok{MyEntity}\OperatorTok{:}\NormalTok{on\_activate}\OperatorTok{(}\VariableTok{staticdata}\OperatorTok{,} \VariableTok{dtime\_s}\OperatorTok{)}
+    \ControlFlowTok{if} \VariableTok{staticdata} \OperatorTok{\textasciitilde{}=} \StringTok{""} \KeywordTok{and} \VariableTok{staticdata} \OperatorTok{\textasciitilde{}=} \KeywordTok{nil} \ControlFlowTok{then}
+        \KeywordTok{local} \VariableTok{data} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{parse\_json}\OperatorTok{(}\VariableTok{staticdata}\OperatorTok{)} \KeywordTok{or} \OperatorTok{\{\}}
+        \VariableTok{self}\OperatorTok{:}\NormalTok{set\_message}\OperatorTok{(}\VariableTok{data}\OperatorTok{.}\VariableTok{message}\OperatorTok{)}
+    \ControlFlowTok{end}
+\KeywordTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Luanti darf \texttt{get\_\allowbreak{}staticdata()} beliebig oft und zu
+jedem Zeitpunkt aufrufen. Luanti wartet nämlich nicht, bis ein
+Mapblock\index{mapblock@Mapblock} inaktiv wird, um ihn zu speichern,
+denn das könnte zu Datenverlust führen. Mapblöcke werden ungefähr alle
+18 Sekunden gespeichert; in ähnlichen Abständen wird also auch
+\texttt{get\_\allowbreak{}staticdata()} aufgerufen.
+
+\texttt{on\_\allowbreak{}activate()}\index{callback@Callback!on_activate@\texttt{on\_\allowbreak{}activate}}
+wird dagegen nur aufgerufen, wenn eine Entity aktiv wird -- entweder
+weil ihr Mapblock aktiv wird oder weil sie neu erzeugt wird. Staticdata
+kann deshalb leer sein.
+
+Zum Schluss registrierst du die Typ-Tabelle mit der passend benannten
+Funktion \texttt{register\_\allowbreak{}entity}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_entity}\OperatorTok{(}\StringTok{"mymod:entity"}\OperatorTok{,} \VariableTok{MyEntity}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Ein Mod kann die Entity so erzeugen:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{pos} \OperatorTok{=} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{2}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{3} \OperatorTok{\}}
+\KeywordTok{local} \VariableTok{obj} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{add\_entity}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \StringTok{"mymod:entity"}\OperatorTok{,} \KeywordTok{nil}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Der dritte Parameter sind die anfänglichen Staticdata. Die Nachricht
+setzt du über die Methode der Entity-Tabelle:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{obj}\OperatorTok{:}\NormalTok{get\_luaentity}\OperatorTok{():}\NormalTok{set\_message}\OperatorTok{(}\StringTok{"Hallo!"}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Spieler mit dem
+Privileg\index{privileg@Privileg}~(Kapitel~\ref{ch:players/privileges})
+\emph{give} können Entities mit einem
+Chatbefehl\index{chatbefehl@Chatbefehl}~(Kapitel~\ref{ch:players/chat})
+erzeugen:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{/spawnentity mymod:entity}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Lebenspunkte und Schaden}\label{lebenspunkte-und-schaden}
+
+\subsection{Lebenspunkte (HP)}\label{lebenspunkte-hp}
+
+Jedes Objekt hat einen Wert für
+Lebenspunkte\index{lebenspunkte@Lebenspunkte} (\emph{health points},
+HP), der seine aktuelle Gesundheit angibt. Die maximalen HP legt die
+Objekteigenschaft \texttt{hp\_\allowbreak{}max} fest. Fallen die HP auf
+0, stirbt das Objekt.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{hp} \OperatorTok{=} \VariableTok{object}\OperatorTok{:}\NormalTok{get\_hp}\OperatorTok{()}
+\VariableTok{object}\OperatorTok{:}\NormalTok{set\_hp}\OperatorTok{(}\VariableTok{hp} \OperatorTok{+} \DecValTok{3}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Schläge, Schadensgruppen und
+Rüstungsgruppen}\label{schluxe4ge-schadensgruppen-und-ruxfcstungsgruppen}
+
+Schaden verringert die HP eines Objekts. Ein Objekt kann ein anderes
+\emph{schlagen} (\emph{punch}), um ihm Schaden zuzufügen. Ein Schlag
+muss kein echter Schlag sein -- es kann auch eine Explosion, ein
+Schwerthieb oder etwas anderes sein.
+
+Der Gesamtschaden ergibt sich, indem die
+Schadensgruppen\index{schadensgruppe@Schadensgruppe} des Schlags mit der
+Verwundbarkeit des Ziels multipliziert werden. Das Ergebnis wird dann
+begrenzt, je nachdem, wie kurz der letzte Schlag zurückliegt. Gleich
+rechnen wir das an einem Beispiel durch.
+
+Wie die Abbautypen\index{abbautyp@Abbautyp} von
+Nodes~(Kapitel~\ref{ch:items/nodes-items-crafting}) können diese
+Gruppen\index{gruppe@Gruppe} beliebige Namen haben und müssen nicht
+registriert werden. Üblich ist aber, dieselben Gruppennamen wie beim
+Abbauen von Nodes zu verwenden.
+
+Wie verwundbar ein Objekt für bestimmte Schadensarten ist, hängt von
+seinen \texttt{armor\_\allowbreak{}groups} ab. Trotz des irreführenden
+Namens geben \texttt{armor\_\allowbreak{}groups} an, wie viel Prozent
+Schaden das Objekt von einer Schadensgruppe erleidet -- nicht, wie viel
+es abwehrt. Fehlt eine Schadensgruppe in den Rüstungsgruppen eines
+Objekts, ist es gegen diese völlig unverwundbar.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{target}\OperatorTok{:}\NormalTok{set\_armor\_groups}\OperatorTok{(\{}
+    \VariableTok{fleshy} \OperatorTok{=} \DecValTok{90}\OperatorTok{,}
+    \VariableTok{crumbly} \OperatorTok{=} \DecValTok{50}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Im Beispiel erleidet das Objekt 90 \% des \texttt{fleshy}-Schadens und
+50 \% des \texttt{crumbly}-Schadens.
+
+Schlägt ein Spieler ein Objekt, kommen die Schadensgruppen von dem Item,
+das er gerade in der Hand hält. In anderen Fällen legen Mods fest,
+welche Schadensgruppen verwendet werden.
+
+\subsection{Beispiel für eine
+Schadensberechnung}\label{beispiel-fuxfcr-eine-schadensberechnung}
+
+Schlagen wir das Objekt \texttt{target}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{tool\_capabilities} \OperatorTok{=} \OperatorTok{\{}
+    \VariableTok{full\_punch\_interval} \OperatorTok{=} \DecValTok{0.8}\OperatorTok{,}
+    \VariableTok{damage\_groups} \OperatorTok{=} \OperatorTok{\{} \VariableTok{fleshy} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{choppy} \OperatorTok{=} \DecValTok{10} \OperatorTok{\},}
+
+    \CommentTok{{-}{-} Nur fürs Abbauen von Nodes, aber trotzdem nötig}
+    \VariableTok{max\_drop\_level} \OperatorTok{=} \DecValTok{1}\OperatorTok{,}
+    \VariableTok{groupcaps} \OperatorTok{=} \OperatorTok{\{}
+        \VariableTok{fleshy} \OperatorTok{=} \OperatorTok{\{}
+            \VariableTok{times} \OperatorTok{=} \OperatorTok{\{} \OperatorTok{[}\DecValTok{1}\OperatorTok{]} \OperatorTok{=} \DecValTok{2.5}\OperatorTok{,} \OperatorTok{[}\DecValTok{2}\OperatorTok{]} \OperatorTok{=} \DecValTok{1.20}\OperatorTok{,} \OperatorTok{[}\DecValTok{3}\OperatorTok{]} \OperatorTok{=} \DecValTok{0.35} \OperatorTok{\},}
+            \VariableTok{uses} \OperatorTok{=} \DecValTok{30}\OperatorTok{,}
+            \VariableTok{maxlevel} \OperatorTok{=} \DecValTok{2}\OperatorTok{,}
+        \OperatorTok{\},}
+    \OperatorTok{\},}
+\OperatorTok{\}}
+
+\KeywordTok{local} \VariableTok{time\_since\_last\_punch} \OperatorTok{=}
+    \VariableTok{tool\_capabilities}\OperatorTok{.}\VariableTok{full\_punch\_interval}
+\VariableTok{target}\OperatorTok{:}\NormalTok{punch}\OperatorTok{(}
+    \VariableTok{object}\OperatorTok{,}
+    \VariableTok{time\_since\_last\_punch}\OperatorTok{,}
+    \VariableTok{tool\_capabilities}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Jetzt berechnen wir den Schaden. Die Schadensgruppen des Schlags sind
+\texttt{fleshy=5} und \texttt{choppy=10}; \texttt{target} erleidet 90 \%
+des \texttt{fleshy}-Schadens und 0 \% des \texttt{choppy}-Schadens.
+
+Zuerst multiplizieren wir die Schadensgruppen mit der Verwundbarkeit und
+addieren die Ergebnisse. Dann multiplizieren wir mit einer Zahl zwischen
+0 und 1, die von
+\texttt{time\_\allowbreak{}since\_\allowbreak{}last\_\allowbreak{}punch}
+abhängt.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{t = limit(time\_since\_last\_punch / full\_punch\_interval, 0, 1)}
+\NormalTok{  = 1}
+
+\NormalTok{Schaden = (5*90/100 + 10*0/100) * t}
+\NormalTok{        = 4.5}
+\end{Highlighting}
+\end{Shaded}
+
+Da HP ganze Zahlen sind, wird der Schaden auf 5 Punkte gerundet.
+
+\section{Anhängen}\label{anhuxe4ngen}
+
+Angehängte Objekte bewegen sich mit, wenn sich das Elternobjekt -- das
+Objekt, an das sie angehängt sind -- bewegt. Ein angehängtes Objekt
+heißt Kind des Elternobjekts. Ein Objekt kann beliebig viele Kinder,
+aber höchstens ein Elternobjekt haben.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{child}\OperatorTok{:}\NormalTok{set\_attach}\OperatorTok{(}\VariableTok{parent}\OperatorTok{,} \VariableTok{bone}\OperatorTok{,} \VariableTok{position}\OperatorTok{,} \VariableTok{rotation}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{get\_\allowbreak{}pos()} gibt immer die globale Position eines
+Objekts zurück, egal ob es angehängt ist oder nicht.
+\texttt{set\_\allowbreak{}attach} erwartet eine relative Position, aber
+nicht so, wie man es erwarten würde: Die Position bezieht sich auf den
+Ursprung des Elternobjekts, mit dem Faktor 10 skaliert. \texttt{0,5,0}
+ist also einen halben Node über dem Ursprung des Elternobjekts.
+
+\begin{hinweis}{Grad und Bogenmaß}
+
+Die Drehung beim Anhängen wird in Grad angegeben, die Drehung von
+Objekten dagegen im Bogenmaß. Achte darauf, in die richtige Einheit
+umzurechnen.
+
+\end{hinweis}
+
+Bei animierten 3D-Modellen hängst du die Entity mit dem Argument
+\texttt{bone} an einen Knochen. 3D-Animationen basieren auf Skeletten --
+einem Netz aus Knochen im Modell, denen jeweils eine Position und
+Drehung gegeben werden kann, um das Modell zu verändern, etwa um den Arm
+zu bewegen. Das Anhängen an einen Knochen ist nützlich, wenn eine Figur
+etwas in der Hand halten soll:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{obj}\OperatorTok{:}\NormalTok{set\_attach}\OperatorTok{(}\VariableTok{player}\OperatorTok{,}
+    \StringTok{"Arm\_Right"}\OperatorTok{,}           \CommentTok{{-}{-} Standardknochen}
+    \OperatorTok{\{}\VariableTok{x}\OperatorTok{=}\DecValTok{0.2}\OperatorTok{,} \VariableTok{y}\OperatorTok{=}\DecValTok{6.5}\OperatorTok{,} \VariableTok{z}\OperatorTok{=}\DecValTok{3}\OperatorTok{\},}   \CommentTok{{-}{-} Standardposition}
+    \OperatorTok{\{}\VariableTok{x}\OperatorTok{={-}}\DecValTok{100}\OperatorTok{,} \VariableTok{y}\OperatorTok{=}\DecValTok{225}\OperatorTok{,} \VariableTok{z}\OperatorTok{=}\DecValTok{90}\OperatorTok{\})} \CommentTok{{-}{-} Standarddrehung}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Jetzt bist du dran}\label{jetzt-bist-du-dran}
+
+\begin{itemize}
+\tightlist
+\item
+  Baue eine Windmühle aus Nodes und einer Entity.
+\item
+  Erstelle einen Mob deiner Wahl (nur mit der Entity-API und ohne andere
+  Mods).
+\end{itemize}

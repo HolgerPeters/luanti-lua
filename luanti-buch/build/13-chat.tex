@@ -1,0 +1,245 @@
+\chapter{Chat und Befehle}
+\label{ch:players/chat}
+
+Mods können mit dem Spielerchat arbeiten: Nachrichten senden,
+Nachrichten abfangen und Chatbefehle\index{chatbefehl@Chatbefehl}
+registrieren.
+
+\section{Nachrichten senden}\label{nachrichten-senden}
+
+\subsection{An alle Spieler}\label{an-alle-spieler}
+
+Um eine Nachricht an alle Spieler im Spiel zu senden, rufst du
+\texttt{chat\_\allowbreak{}send\_\allowbreak{}all} auf:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_all}\OperatorTok{(}
+    \StringTok{"Das ist eine Chatnachricht an alle Spieler"}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Im Spiel sieht das zum Beispiel so aus:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{\textless{}player1\textgreater{} Schau dir diesen Eingang an}
+\NormalTok{Das ist eine Chatnachricht an alle Spieler}
+\NormalTok{\textless{}player2\textgreater{} Was ist damit?}
+\end{Highlighting}
+\end{Shaded}
+
+Die Nachricht steht in einer eigenen Zeile, damit man sie vom Chat der
+Spieler unterscheiden kann.
+
+\subsection{An bestimmte Spieler}\label{an-bestimmte-spieler}
+
+Um eine Nachricht an einen bestimmten Spieler zu senden, rufst du
+\texttt{chat\_\allowbreak{}send\_\allowbreak{}player} auf:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_player}\OperatorTok{(}
+    \StringTok{"player1"}\OperatorTok{,}
+    \StringTok{"Diese Nachricht ist für player1"}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Die Nachricht wird genauso angezeigt wie Nachrichten an alle Spieler,
+ist aber nur für den genannten Spieler sichtbar, hier also für
+\texttt{player1}.
+
+\section{Chatbefehle}\label{chatbefehle}
+
+Einen Chatbefehl, zum Beispiel \texttt{/\allowbreak{}foo}, registrierst
+du mit \texttt{register\_\allowbreak{}chatcommand}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_chatcommand}\OperatorTok{(}\StringTok{"foo"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{params} \OperatorTok{=} \StringTok{"\textless{}text\textgreater{}"}\OperatorTok{,}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Wiederholt den Text"}\OperatorTok{,}
+    \VariableTok{privs} \OperatorTok{=} \OperatorTok{\{}
+        \VariableTok{interact} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+    \OperatorTok{\},}
+    \VariableTok{func} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \VariableTok{param}\OperatorTok{)}
+        \ControlFlowTok{return} \KeywordTok{true}\OperatorTok{,} \StringTok{"Du hast "} \OperatorTok{..} \VariableTok{param} \OperatorTok{..} \StringTok{" gesagt!"}
+    \KeywordTok{end}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Hier ist \texttt{interact} als nötiges
+Privileg\index{privileg@Privileg}~(Kapitel~\ref{ch:players/privileges})
+angegeben; nur Spieler mit dem Privileg \texttt{interact} können den
+Befehl also ausführen. \texttt{params} und \texttt{description}
+erscheinen in der Hilfe, die \texttt{/\allowbreak{}help} anzeigt.
+
+\texttt{param} ist ein String mit allem, was der Spieler nach dem Namen
+des Befehls schreibt. Tippt jemand zum Beispiel
+\texttt{/\allowbreak{}grantme one,two,three}, ist \texttt{param} gleich
+\texttt{one,two,three}.
+
+Chatbefehle können bis zu zwei Werte zurückgeben: zuerst einen
+Wahrheitswert, der angibt, ob der Befehl erfolgreich war, und dann eine
+Nachricht an den Benutzer.
+
+\begin{hinweis}{Auch Offline-Spieler können Befehle ausführen}
+
+Statt eines Spielerobjekts wird ein Spielername übergeben, weil Mods
+Befehle im Namen von Spielern ausführen können, die nicht online sind.
+Die IRC-Brücke erlaubt Spielern zum Beispiel, Befehle auszuführen, ohne
+dem Spiel beizutreten.
+
+Geh also nicht davon aus, dass der Spieler online ist. Das kannst du
+prüfen, indem du schaust, ob
+\texttt{core.\allowbreak{}get\_\allowbreak{}player\_\allowbreak{}by\_\allowbreak{}name}\index{core@\texttt{core}!get_player_by_name@\texttt{core.\allowbreak{}get\_\allowbreak{}player\_\allowbreak{}by\_\allowbreak{}name}}
+einen Spieler zurückgibt.
+
+\end{hinweis}
+
+\subsection{Mehrere Argumente}\label{mehrere-argumente}
+
+\texttt{param} enthält alle Argumente eines Chatbefehls in einem
+einzigen String. Oft muss ein Befehl daraus mehrere Argumente
+herauslösen. Dafür gibt es zwei Wege: die String-Funktion \texttt{split}
+von Luanti oder Lua-Patterns.
+
+\subsubsection{Mit string.split}\label{mit-string.split}
+
+Mit \texttt{string.\allowbreak{}split(\textquotedbl{} \textquotedbl{})}
+zerlegst du einen String in Wörter:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{parts} \OperatorTok{=} \VariableTok{param}\OperatorTok{:}\NormalTok{split}\OperatorTok{(}\StringTok{" "}\OperatorTok{)}
+\KeywordTok{local} \VariableTok{cmd} \OperatorTok{=} \VariableTok{parts}\OperatorTok{[}\DecValTok{1}\OperatorTok{]}
+
+\ControlFlowTok{if} \VariableTok{cmd} \OperatorTok{==} \StringTok{"join"} \ControlFlowTok{then}
+    \KeywordTok{local} \VariableTok{team\_name} \OperatorTok{=} \VariableTok{parts}\OperatorTok{[}\DecValTok{2}\OperatorTok{]}
+    \VariableTok{team}\OperatorTok{.}\NormalTok{join}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \VariableTok{team\_name}\OperatorTok{)}
+    \ControlFlowTok{return} \KeywordTok{true}\OperatorTok{,} \StringTok{"Team beigetreten!"}
+\ControlFlowTok{elseif} \VariableTok{cmd} \OperatorTok{==} \StringTok{"max\_users"} \ControlFlowTok{then}
+    \KeywordTok{local} \VariableTok{team\_name} \OperatorTok{=} \VariableTok{parts}\OperatorTok{[}\DecValTok{2}\OperatorTok{]}
+    \KeywordTok{local} \VariableTok{max\_users} \OperatorTok{=} \FunctionTok{tonumber}\OperatorTok{(}\VariableTok{parts}\OperatorTok{[}\DecValTok{3}\OperatorTok{])}
+    \ControlFlowTok{if} \VariableTok{team\_name} \KeywordTok{and} \VariableTok{max\_users} \ControlFlowTok{then}
+        \ControlFlowTok{return} \KeywordTok{true}\OperatorTok{,}
+            \StringTok{"Maximale Spielerzahl von "}
+                \OperatorTok{..} \VariableTok{team\_name}
+                \OperatorTok{..} \StringTok{" auf "}
+                \OperatorTok{..} \VariableTok{max\_users}
+                \OperatorTok{..} \StringTok{" gesetzt"}
+    \ControlFlowTok{else}
+        \ControlFlowTok{return} \KeywordTok{false}\OperatorTok{,}
+            \StringTok{"Aufruf: /team max\_users \textless{}team\_name\textgreater{} \textless{}zahl\textgreater{}"}
+    \ControlFlowTok{end}
+\ControlFlowTok{else}
+    \ControlFlowTok{return} \KeywordTok{false}\OperatorTok{,} \StringTok{"Befehl fehlt"}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Mit Lua-Patterns}\label{mit-lua-patterns}
+
+Mit Lua-Patterns\footnote{\url{https://www.lua.org/pil/20.2.html}}
+(englisch) ziehst du anhand von Regeln Teile aus einem Text heraus. Sie
+eignen sich am besten, wenn Argumente Leerzeichen enthalten können oder
+du genauer steuern willst, wie Parameter erfasst werden.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{to}\OperatorTok{,} \VariableTok{msg} \OperatorTok{=} \VariableTok{param}\OperatorTok{:}\FunctionTok{match}\OperatorTok{(}\StringTok{"\^{}([\%a\%d\_{-}]+) (.+)$"}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Dieser Code setzt \texttt{/\allowbreak{}msg <an> <nachricht>} um. Gehen
+wir ihn von links nach rechts durch:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{\textasciicircum{}} passt auf den Anfang des Strings.
+\item
+  \texttt{()} ist eine Gruppe\index{gruppe@Gruppe} -- was darin passt,
+  gibt \texttt{string.\allowbreak{}match} zurück.
+\item
+  \texttt{[]} akzeptiert die Zeichen in dieser Liste.
+\item
+  \texttt{\%a} akzeptiert jeden Buchstaben, \texttt{\%d} jede Ziffer.
+\item
+  \texttt{[\%a\%d\_\allowbreak{}-]} akzeptiert also jeden Buchstaben,
+  jede Ziffer, \texttt{\_\allowbreak{}} und \texttt{-}.
+\item
+  \texttt{+} passt, wenn das Vorherige ein- oder mehrmals vorkommt.
+\item
+  \texttt{.\allowbreak{}} passt hier auf jedes beliebige Zeichen.
+\item
+  \texttt{\$} passt auf das Ende des Strings.
+\end{itemize}
+
+Kurz gesagt: Das Pattern erfasst den Namen (ein Wort nur aus Buchstaben,
+Ziffern, \texttt{-} und \texttt{\_\allowbreak{}}), dann ein Leerzeichen,
+dann die Nachricht (ein oder mehr beliebige Zeichen). Name und Nachricht
+werden zurückgegeben, weil sie in Klammern stehen.
+
+So setzen die meisten Mods komplexe Chatbefehle um. Ausführlichere
+Anleitungen zu Lua-Patterns sind das Tutorial auf
+lua-users.org\footnote{\url{http://lua-users.org/wiki/PatternsTutorial}}
+(englisch) und die Dokumentation in PIL\footnote{\url{https://www.lua.org/pil/20.2.html}}
+(englisch).
+
+\section{Nachrichten abfangen}\label{nachrichten-abfangen}
+
+Um Nachrichten abzufangen, verwendest du
+\texttt{register\_\allowbreak{}on\_\allowbreak{}chat\_\allowbreak{}message}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_on\_chat\_message}\OperatorTok{(}\KeywordTok{function}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \VariableTok{message}\OperatorTok{)}
+    \FunctionTok{print}\OperatorTok{(}\VariableTok{name} \OperatorTok{..} \StringTok{" sagt "} \OperatorTok{..} \VariableTok{message}\OperatorTok{)}
+    \ControlFlowTok{return} \KeywordTok{false}
+\KeywordTok{end}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Mit \texttt{return false} lässt du zu, dass die Nachricht wie üblich
+gesendet wird. Du könntest die Zeile \texttt{return false} auch
+weglassen, ohne dass sich etwas ändert, denn dann wird implizit
+\texttt{nil} zurückgegeben, und das wird wie \texttt{false} behandelt.
+
+\begin{hinweis}{Privilegien und Chatbefehle}
+
+Ein Spieler braucht das Privileg \texttt{shout} nicht, um diesen
+Callback\index{callback@Callback} auszulösen. Chatbefehle sind nämlich
+in Lua umgesetzt und einfach Chatnachrichten, die mit
+\texttt{/\allowbreak{}} beginnen.
+
+\end{hinweis}
+
+Berücksichtige also, dass es sich um einen Chatbefehl handeln kann oder
+dass dem Spieler \texttt{shout} fehlt.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_on\_chat\_message}\OperatorTok{(}\KeywordTok{function}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \VariableTok{message}\OperatorTok{)}
+    \ControlFlowTok{if} \VariableTok{message}\OperatorTok{:}\FunctionTok{sub}\OperatorTok{(}\DecValTok{1}\OperatorTok{,} \DecValTok{1}\OperatorTok{)} \OperatorTok{==} \StringTok{"/"} \ControlFlowTok{then}
+        \FunctionTok{print}\OperatorTok{(}\VariableTok{name} \OperatorTok{..} \StringTok{" hat einen Chatbefehl ausgeführt"}\OperatorTok{)}
+    \ControlFlowTok{elseif}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{check\_player\_privs}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \OperatorTok{\{} \VariableTok{shout} \OperatorTok{=} \KeywordTok{true} \OperatorTok{\})}
+    \ControlFlowTok{then}
+        \FunctionTok{print}\OperatorTok{(}\VariableTok{name} \OperatorTok{..} \StringTok{" sagt "} \OperatorTok{..} \VariableTok{message}\OperatorTok{)}
+    \ControlFlowTok{else}
+        \FunctionTok{print}\OperatorTok{(}
+            \VariableTok{name}
+                \OperatorTok{..} \StringTok{" wollte "}
+                \OperatorTok{..} \VariableTok{message}
+                \OperatorTok{..} \StringTok{" sagen, hat aber kein shout"}
+        \OperatorTok{)}
+    \ControlFlowTok{end}
+
+    \ControlFlowTok{return} \KeywordTok{false}
+\KeywordTok{end}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}

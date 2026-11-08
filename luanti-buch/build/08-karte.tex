@@ -1,0 +1,296 @@
+\chapter{Grundlegende Kartenoperationen}
+\label{ch:map/environment}
+
+In diesem Kapitel lernst du grundlegende Operationen auf der Karte
+kennen, etwa Nodes hinzufügen, entfernen und finden.
+
+\section{Aufbau der Karte}\label{aufbau-der-karte}
+
+Die Luanti-Karte ist in Mapblöcke aufgeteilt; jeder
+Mapblock\index{mapblock@Mapblock} ist ein Würfel mit der Kantenlänge 16.
+Während Spieler sich über die Karte bewegen, werden Mapblöcke erzeugt,
+geladen, aktiviert und wieder entladen. Noch nicht geladene Bereiche der
+Karte sind mit \emph{ignore}-Nodes gefüllt, einem unpassierbaren, nicht
+auswählbaren Platzhalter. Leerer Raum ist mit \emph{air}-Nodes gefüllt,
+unsichtbaren Nodes, durch die man hindurchgehen kann.
+
+Ein aktiver Mapblock ist einer, der geladen ist und auf dem
+Aktualisierungen laufen.
+
+Geladene Mapblöcke werden oft \emph{aktive Blöcke} genannt. Mods und
+Spieler können aus aktiven Blöcken lesen und in sie schreiben, und sie
+enthalten aktive Entities.\index{entity@Entity} Auch die Engine führt
+Operationen auf der Karte aus, etwa die Flüssigkeitsphysik.
+
+Mapblöcke werden entweder aus der Weltdatenbank geladen oder neu
+generiert. Generiert werden sie bis zur Kartengenerierungsgrenze
+(\texttt{mapgen\_\allowbreak{}limit}), die standardmäßig auf ihren
+Höchstwert 31000 eingestellt ist. Bereits vorhandene Mapblöcke können
+aber auch jenseits dieser Grenze aus der Weltdatenbank geladen werden.
+
+\section{Lesen}\label{lesen}
+
+\subsection{Nodes lesen}\label{nodes-lesen}
+
+Sobald du eine Position hast, kannst du aus der Karte lesen:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{node} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_node}\OperatorTok{(\{} \VariableTok{x} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{3}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{4} \OperatorTok{\})}
+\FunctionTok{print}\OperatorTok{(}\FunctionTok{dump}\OperatorTok{(}\VariableTok{node}\OperatorTok{))} \CommentTok{{-}{-}\textgreater{} \{ name=.., param1=.., param2=.. \}}
+\end{Highlighting}
+\end{Shaded}
+
+Ist die Position keine ganze Zahl, wird sie auf den Node gerundet, in
+dem sie liegt. Die Funktion gibt immer eine Tabelle mit den
+Node-Informationen zurück:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{name} -- der Node-Name; \emph{ignore}, wenn der Bereich nicht
+  geladen ist.
+\item
+  \texttt{param1} -- siehe Node-Definition; meist die Beleuchtung.
+\item
+  \texttt{param2} -- siehe Node-Definition.
+\end{itemize}
+
+Beachte, dass die Funktion einen inaktiven Block nicht lädt, sondern
+eine Tabelle mit dem Namen \texttt{ignore} zurückgibt.
+
+Stattdessen kannst du
+\texttt{core.\allowbreak{}get\_\allowbreak{}node\_\allowbreak{}or\_\allowbreak{}nil}\index{core@\texttt{core}!get_node_or_nil@\texttt{core.\allowbreak{}get\_\allowbreak{}node\_\allowbreak{}or\_\allowbreak{}nil}}
+verwenden; sie gibt dann \texttt{nil} zurück statt einer Tabelle mit dem
+Namen \texttt{ignore}. Auch sie lädt den Block nicht. Sie kann trotzdem
+\texttt{ignore} zurückgeben, wenn ein Block tatsächlich \emph{ignore}
+enthält -- das passiert am Rand der Karte, wie ihn die
+Kartengenerierungsgrenze (\texttt{mapgen\_\allowbreak{}limit}) festlegt.
+
+\subsection{Nodes finden}\label{nodes-finden}
+
+Luanti bietet eine Reihe von Hilfsfunktionen, die häufige
+Kartenoperationen beschleunigen. Am häufigsten werden die Funktionen zum
+Finden von Nodes verwendet.
+
+Angenommen, du möchtest eine Pflanze erstellen, die in der Nähe von Mese
+besser wächst. Dann musst du nach Mese-Nodes in der Umgebung suchen und
+die Wachstumsrate entsprechend anpassen.
+
+\texttt{core.\allowbreak{}find\_\allowbreak{}node\_\allowbreak{}near}\index{core@\texttt{core}!find_node_near@\texttt{core.\allowbreak{}find\_\allowbreak{}node\_\allowbreak{}near}}
+gibt den ersten gefundenen Node in einem bestimmten Radius zurück, der
+zu den angegebenen Node-Namen oder Gruppen\index{gruppe@Gruppe} passt.
+Im folgenden Beispiel suchen wir einen Mese-Node im Umkreis von 5 Nodes
+um die Position:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{grow\_speed} \OperatorTok{=} \DecValTok{1}
+\KeywordTok{local} \VariableTok{node\_pos} \OperatorTok{=}
+    \VariableTok{core}\OperatorTok{.}\NormalTok{find\_node\_near}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \DecValTok{5}\OperatorTok{,} \OperatorTok{\{} \StringTok{"default:mese"} \OperatorTok{\})}
+\ControlFlowTok{if} \VariableTok{node\_pos} \ControlFlowTok{then}
+    \VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_all}\OperatorTok{(}
+        \StringTok{"Node gefunden bei: "} \OperatorTok{..} \FunctionTok{dump}\OperatorTok{(}\VariableTok{node\_pos}\OperatorTok{)}
+    \OperatorTok{)}
+    \VariableTok{grow\_speed} \OperatorTok{=} \DecValTok{2}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Angenommen, die Wachstumsrate soll umso höher sein, je mehr Mese in der
+Nähe ist. Dann brauchst du eine Funktion, die mehrere Nodes in einem
+Bereich findet:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{pos1} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{subtract}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{5} \OperatorTok{\})}
+\KeywordTok{local} \VariableTok{pos2} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{add}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{5} \OperatorTok{\})}
+\KeywordTok{local} \VariableTok{pos\_list} \OperatorTok{=}
+    \VariableTok{core}\OperatorTok{.}\NormalTok{find\_nodes\_in\_area}\OperatorTok{(}\VariableTok{pos1}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{,} \OperatorTok{\{} \StringTok{"default:mese"} \OperatorTok{\})}
+\KeywordTok{local} \VariableTok{grow\_speed} \OperatorTok{=} \DecValTok{1} \OperatorTok{+} \OperatorTok{\#}\VariableTok{pos\_list}
+\end{Highlighting}
+\end{Shaded}
+
+Dieser Code zählt die Nodes in einem \emph{Quader}. Das unterscheidet
+sich von \texttt{find\_\allowbreak{}node\_\allowbreak{}near}, das den
+Abstand zur Position verwendet (also eine \emph{Kugel}). Um das zu
+korrigieren, müssen wir den Abstand selbst prüfen:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{pos1} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{subtract}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{5} \OperatorTok{\})}
+\KeywordTok{local} \VariableTok{pos2} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{add}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{5}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{5} \OperatorTok{\})}
+\KeywordTok{local} \VariableTok{pos\_list} \OperatorTok{=}
+    \VariableTok{core}\OperatorTok{.}\NormalTok{find\_nodes\_in\_area}\OperatorTok{(}\VariableTok{pos1}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{,} \OperatorTok{\{} \StringTok{"default:mese"} \OperatorTok{\})}
+\KeywordTok{local} \VariableTok{grow\_speed} \OperatorTok{=} \DecValTok{1}
+\ControlFlowTok{for} \VariableTok{i} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \OperatorTok{\#}\VariableTok{pos\_list} \ControlFlowTok{do}
+    \KeywordTok{local} \VariableTok{delta} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{subtract}\OperatorTok{(}\VariableTok{pos\_list}\OperatorTok{[}\VariableTok{i}\OperatorTok{],} \VariableTok{pos}\OperatorTok{)}
+    \ControlFlowTok{if}
+        \VariableTok{delta}\OperatorTok{.}\VariableTok{x} \OperatorTok{*} \VariableTok{delta}\OperatorTok{.}\VariableTok{x}
+            \OperatorTok{+} \VariableTok{delta}\OperatorTok{.}\VariableTok{y} \OperatorTok{*} \VariableTok{delta}\OperatorTok{.}\VariableTok{y}
+            \OperatorTok{+} \VariableTok{delta}\OperatorTok{.}\VariableTok{z} \OperatorTok{*} \VariableTok{delta}\OperatorTok{.}\VariableTok{z}
+        \OperatorTok{\textless{}=} \DecValTok{5} \OperatorTok{*} \DecValTok{5}
+    \ControlFlowTok{then}
+        \VariableTok{grow\_speed} \OperatorTok{=} \VariableTok{grow\_speed} \OperatorTok{+} \DecValTok{1}
+    \ControlFlowTok{end}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Jetzt erhöht der Code \texttt{grow\_\allowbreak{}speed} korrekt anhand
+der Mese-Nodes im Umkreis.
+
+Beachte, dass wir den \emph{quadrierten} Abstand vergleichen, statt die
+Wurzel zu ziehen und den echten Abstand zu berechnen. Wurzeln sind für
+Computer rechenaufwendig und sollten daher möglichst vermieden werden.
+
+Es gibt weitere Varianten der beiden Funktionen, etwa
+\texttt{find\_\allowbreak{}nodes\_\allowbreak{}with\_\allowbreak{}meta}
+und
+\texttt{find\_\allowbreak{}nodes\_\allowbreak{}in\_\allowbreak{}area\_\allowbreak{}under\_\allowbreak{}air}.
+Sie funktionieren ähnlich und sind in anderen Situationen nützlich.
+
+\section{Schreiben}\label{schreiben}
+
+\subsection{Nodes schreiben}\label{nodes-schreiben}
+
+Mit \texttt{set\_\allowbreak{}node} schreibst du in die Karte. Jeder
+Aufruf von \texttt{set\_\allowbreak{}node} führt dazu, dass die
+Beleuchtung neu berechnet wird und Node-Callbacks laufen. Für viele
+Nodes ist \texttt{set\_\allowbreak{}node} deshalb recht langsam.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{set\_node}\OperatorTok{(}
+    \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{3}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{4} \OperatorTok{\},}
+    \OperatorTok{\{} \VariableTok{name} \OperatorTok{=} \StringTok{"default:mese"} \OperatorTok{\}}
+\OperatorTok{)}
+
+\KeywordTok{local} \VariableTok{node} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_node}\OperatorTok{(\{} \VariableTok{x} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{3}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{4} \OperatorTok{\})}
+\FunctionTok{print}\OperatorTok{(}\VariableTok{node}\OperatorTok{.}\VariableTok{name}\OperatorTok{)} \CommentTok{{-}{-}\textgreater{} default:mese}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{set\_\allowbreak{}node} entfernt alle
+Metadaten\index{metadaten@Metadaten} und das
+Inventar\index{inventar@Inventar} an dieser Position. Das ist nicht
+immer erwünscht, besonders wenn du mehrere Node-Definitionen für einen
+einzigen gedachten Node verwendest. Ein Beispiel ist der Ofen: Man denkt
+sich ihn als einen Node, tatsächlich sind es aber zwei.
+
+So setzt du einen Node, ohne Metadaten und Inventar zu löschen:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{swap\_node}\OperatorTok{(}
+    \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{1}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{3}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{4} \OperatorTok{\},}
+    \OperatorTok{\{} \VariableTok{name} \OperatorTok{=} \StringTok{"default:mese"} \OperatorTok{\}}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Nodes entfernen}\label{nodes-entfernen}
+
+An jeder Position muss ein Node sein. Um einen Node zu entfernen, setzt
+du die Position auf \texttt{air}.
+
+Die folgenden beiden Zeilen entfernen beide einen Node und sind
+gleichwertig:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{remove\_node}\OperatorTok{(}\VariableTok{pos}\OperatorTok{)}
+\VariableTok{core}\OperatorTok{.}\NormalTok{set\_node}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \OperatorTok{\{} \VariableTok{name} \OperatorTok{=} \StringTok{"air"} \OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{remove\_\allowbreak{}node} ist tatsächlich nur eine
+Hilfsfunktion, die \texttt{set\_\allowbreak{}node} mit
+\texttt{\textquotedbl{}air\textquotedbl{}} aufruft.
+
+\section{Mapblöcke laden}\label{mapbluxf6cke-laden}
+
+Mit
+\texttt{core.\allowbreak{}emerge\_\allowbreak{}area}\index{core@\texttt{core}!emerge_area@\texttt{core.\allowbreak{}emerge\_\allowbreak{}area}}
+lädst du Mapblöcke. Das geschieht asynchron, die Blöcke sind also nicht
+sofort geladen. Sie werden in Kürze geladen, und für jeden Block wird
+der Callback\index{callback@Callback} aufgerufen.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Einen Bereich von 20×20×20 laden}
+\KeywordTok{local} \VariableTok{halfsize} \OperatorTok{=} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{10}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{10}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{10} \OperatorTok{\}}
+\KeywordTok{local} \VariableTok{pos1} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{subtract}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \VariableTok{halfsize}\OperatorTok{)}
+\KeywordTok{local} \VariableTok{pos2} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{add}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \VariableTok{halfsize}\OperatorTok{)}
+
+\KeywordTok{local} \VariableTok{context} \OperatorTok{=} \OperatorTok{\{\}} \CommentTok{{-}{-} Daten zwischen den Callback{-}Aufrufen}
+\VariableTok{core}\OperatorTok{.}\NormalTok{emerge\_area}\OperatorTok{(}\VariableTok{pos1}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{,} \VariableTok{emerge\_callback}\OperatorTok{,} \VariableTok{context}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Luanti ruft \texttt{emerge\_\allowbreak{}callback} jedes Mal auf, wenn
+ein Block geladen wurde, und übergibt dabei Informationen zum
+Fortschritt. Die Funktion muss definiert sein, bevor
+\texttt{emerge\_\allowbreak{}area} aufgerufen wird:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \KeywordTok{function}\NormalTok{ emerge\_callback}\OperatorTok{(}
+    \VariableTok{pos}\OperatorTok{,}
+    \VariableTok{action}\OperatorTok{,}
+    \VariableTok{num\_calls\_remaining}\OperatorTok{,}
+    \VariableTok{context}
+\OperatorTok{)}
+    \CommentTok{{-}{-} Beim ersten Aufruf die Anzahl der Blöcke merken}
+    \ControlFlowTok{if} \KeywordTok{not} \VariableTok{context}\OperatorTok{.}\VariableTok{total\_blocks} \ControlFlowTok{then}
+        \VariableTok{context}\OperatorTok{.}\VariableTok{total\_blocks} \OperatorTok{=} \VariableTok{num\_calls\_remaining} \OperatorTok{+} \DecValTok{1}
+        \VariableTok{context}\OperatorTok{.}\VariableTok{loaded\_blocks} \OperatorTok{=} \DecValTok{0}
+    \ControlFlowTok{end}
+
+    \CommentTok{{-}{-} Anzahl der geladenen Blöcke erhöhen}
+    \VariableTok{context}\OperatorTok{.}\VariableTok{loaded\_blocks} \OperatorTok{=} \VariableTok{context}\OperatorTok{.}\VariableTok{loaded\_blocks} \OperatorTok{+} \DecValTok{1}
+
+    \CommentTok{{-}{-} Fortschritt melden}
+    \ControlFlowTok{if} \VariableTok{context}\OperatorTok{.}\VariableTok{total\_blocks} \OperatorTok{==} \VariableTok{context}\OperatorTok{.}\VariableTok{loaded\_blocks} \ControlFlowTok{then}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_all}\OperatorTok{(}\StringTok{"Alle Blöcke geladen!"}\OperatorTok{)}
+    \ControlFlowTok{else}
+        \KeywordTok{local} \VariableTok{perc} \OperatorTok{=} \DecValTok{100}
+            \OperatorTok{*} \VariableTok{context}\OperatorTok{.}\VariableTok{loaded\_blocks}
+            \OperatorTok{/} \VariableTok{context}\OperatorTok{.}\VariableTok{total\_blocks}
+        \KeywordTok{local} \VariableTok{msg} \OperatorTok{=} \FunctionTok{string.format}\OperatorTok{(}
+            \StringTok{"Lade Blöcke \%d/\%d (\%.2f\%\%)"}\OperatorTok{,}
+            \VariableTok{context}\OperatorTok{.}\VariableTok{loaded\_blocks}\OperatorTok{,}
+            \VariableTok{context}\OperatorTok{.}\VariableTok{total\_blocks}\OperatorTok{,}
+            \VariableTok{perc}
+        \OperatorTok{)}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_all}\OperatorTok{(}\VariableTok{msg}\OperatorTok{)}
+    \ControlFlowTok{end}
+\KeywordTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Das ist nicht die einzige Möglichkeit, Blöcke zu laden: Auch ein Lua
+Voxel Manipulator (LVM)\index{lvm@LVM}~(Kapitel~\ref{ch:advmap/lvm})
+lädt die betroffenen Blöcke, und zwar synchron.
+
+\section{Mapblöcke löschen}\label{mapbluxf6cke-luxf6schen}
+
+Mit
+\texttt{core.\allowbreak{}delete\_\allowbreak{}area}\index{core@\texttt{core}!delete_area@\texttt{core.\allowbreak{}delete\_\allowbreak{}area}}
+löschst du einen Bereich von Mapblöcken:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Einen Bereich von 20×20×20 löschen}
+\KeywordTok{local} \VariableTok{halfsize} \OperatorTok{=} \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \DecValTok{10}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \DecValTok{10}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \DecValTok{10} \OperatorTok{\}}
+\KeywordTok{local} \VariableTok{pos1} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{subtract}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \VariableTok{halfsize}\OperatorTok{)}
+\KeywordTok{local} \VariableTok{pos2} \OperatorTok{=} \VariableTok{vector}\OperatorTok{.}\NormalTok{add}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \VariableTok{halfsize}\OperatorTok{)}
+
+\VariableTok{core}\OperatorTok{.}\NormalTok{delete\_area}\OperatorTok{(}\VariableTok{pos1}\OperatorTok{,} \VariableTok{pos2}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Dabei werden alle Mapblöcke in diesem Bereich gelöscht, und zwar
+\emph{einschließlich} der Ränder. Es werden also auch Nodes außerhalb
+des Bereichs gelöscht, wenn sie in einem Mapblock liegen, der über die
+Bereichsgrenzen hinausragt.

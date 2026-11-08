@@ -1,0 +1,138 @@
+\chapter{Automatische Fehlersuche mit LuaCheck}
+\label{ch:quality/luacheck}
+
+In diesem Kapitel lernst du, wie du deinen Mod mit dem Werkzeug
+LuaCheck\index{luacheck@Luacheck} automatisch nach Fehlern durchsuchst.
+LuaCheck lässt sich mit deinem Editor verbinden, der dich dann auf
+Fehler hinweist.
+
+\section{LuaCheck installieren}\label{luacheck-installieren}
+
+\subsection{Windows}\label{windows}
+
+Lade einfach \texttt{luacheck.\allowbreak{}exe} von der Release-Seite
+auf GitHub\footnote{\url{https://github.com/lunarmodules/luacheck/releases}}
+herunter.
+
+\subsection{Linux}\label{linux}
+
+Installiere zuerst LuaRocks:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sudo apt install luarocks}
+\end{Highlighting}
+\end{Shaded}
+
+Dann installierst du LuaCheck global:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sudo luarocks install luacheck}
+\end{Highlighting}
+\end{Shaded}
+
+Mit diesem Befehl prüfst du, ob die Installation geklappt hat:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{luacheck {-}v}
+\end{Highlighting}
+\end{Shaded}
+
+\section{LuaCheck ausführen}\label{luacheck-ausfuxfchren}
+
+Beim ersten Durchlauf meldet LuaCheck wahrscheinlich viele Fehler, die
+keine sind. Das liegt daran, dass es noch nicht eingerichtet ist.
+
+Unter Windows öffnest du PowerShell oder Bash im Hauptordner deines
+Projekts und führst
+\texttt{path\textbackslash{}to\textbackslash{}luacheck.\allowbreak{}exe .\allowbreak{}}
+aus.
+
+Unter Linux führst du im Hauptordner deines Projekts
+\texttt{luacheck .\allowbreak{}} aus.
+
+\section{LuaCheck einrichten}\label{luacheck-einrichten}
+
+Lege im Hauptordner deines Projekts eine Datei
+\texttt{.\allowbreak{}luacheckrc} an. Das kann der Hauptordner deines
+Spiels, Mod-Pakets oder Mods sein.
+
+Schreib Folgendes hinein:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{unused\_args} \OperatorTok{=} \KeywordTok{false}
+\VariableTok{allow\_defined\_top} \OperatorTok{=} \KeywordTok{true}
+
+\VariableTok{globals} \OperatorTok{=} \OperatorTok{\{}
+    \StringTok{"core"}\OperatorTok{,}
+\OperatorTok{\}}
+
+\VariableTok{read\_globals} \OperatorTok{=} \OperatorTok{\{}
+    \VariableTok{string} \OperatorTok{=} \OperatorTok{\{} \VariableTok{fields} \OperatorTok{=} \OperatorTok{\{} \StringTok{"split"} \OperatorTok{\}} \OperatorTok{\},}
+    \VariableTok{table} \OperatorTok{=} \OperatorTok{\{} \VariableTok{fields} \OperatorTok{=} \OperatorTok{\{} \StringTok{"copy"}\OperatorTok{,} \StringTok{"getn"} \OperatorTok{\}} \OperatorTok{\},}
+
+    \CommentTok{{-}{-} Eingebaut}
+    \StringTok{"vector"}\OperatorTok{,}
+    \StringTok{"ItemStack"}\OperatorTok{,}
+    \StringTok{"dump"}\OperatorTok{,}
+    \StringTok{"DIR\_DELIM"}\OperatorTok{,}
+    \StringTok{"VoxelArea"}\OperatorTok{,}
+    \StringTok{"Settings"}\OperatorTok{,}
+
+    \CommentTok{{-}{-} Minetest Game}
+    \StringTok{"default"}\OperatorTok{,}
+    \StringTok{"sfinv"}\OperatorTok{,}
+    \StringTok{"creative"}\OperatorTok{,}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Verwendest du in älterem Code noch den
+Namensraum\index{namensraum@Namensraum} \texttt{minetest}, nimm ihn
+zusätzlich in \texttt{globals} auf.
+
+Prüfe dann mit einem neuen Durchlauf, ob es funktioniert. Diesmal
+solltest du deutlich weniger Fehler bekommen. Arbeite dich ab dem ersten
+Fehler durch: Behebe das Problem im Code oder passe die Konfiguration
+an, wenn der Code korrekt ist. Hilfe dazu gibt die folgende Liste.
+
+\subsection{Fehlerbehebung}\label{fehlerbehebung}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{accessing undefined variable foobar} -- Soll \texttt{foobar}
+  eine globale Variable sein, nimm sie in
+  \texttt{read\_\allowbreak{}globals} auf. Andernfalls ergänze die
+  fehlenden \texttt{local}.
+\item
+  \textbf{setting non-standard global variable foobar} -- Soll
+  \texttt{foobar} eine globale Variable sein, nimm sie in
+  \texttt{globals} auf und entferne sie gegebenenfalls aus
+  \texttt{read\_\allowbreak{}globals}. Andernfalls ergänze die fehlenden
+  \texttt{local}.
+\item
+  \textbf{mutating read-only global variable `foobar'} -- Verschiebe
+  \texttt{foobar} von \texttt{read\_\allowbreak{}globals} nach
+  \texttt{globals} oder schreib nicht mehr in \texttt{foobar}.
+\end{itemize}
+
+\section{Im Editor verwenden}\label{im-editor-verwenden}
+
+Es ist sehr zu empfehlen, für deinen Editor eine Erweiterung zu
+installieren, die Fehler anzeigt, ohne dass du einen Befehl ausführen
+musst. Für die meisten Editoren gibt es eine.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{VSCode} -- Strg+P drücken und dann einfügen:
+  \texttt{ext install dwenegar.\allowbreak{}vscode-luacheck}
+\item
+  \textbf{Sublime Text} -- Über Package Control installieren:
+  SublimeLinter\footnote{\url{https://github.com/SublimeLinter/SublimeLinter}}
+  und SublimeLinter-luacheck\footnote{\url{https://github.com/SublimeLinter/SublimeLinter-luacheck}}.
+\end{itemize}

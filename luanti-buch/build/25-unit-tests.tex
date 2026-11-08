@@ -1,0 +1,204 @@
+\chapter{Automatische Unit-Tests}
+\label{ch:quality/unit-testing}
+
+Unit-Tests\index{unit-test@Unit-Test} sind ein unverzichtbares Werkzeug,
+um nachzuweisen und dich zu vergewissern, dass dein Code korrekt ist.
+Dieses Kapitel zeigt, wie du mit \emph{Busted\index{busted@Busted}}
+Tests für Luanti-Mods und -Spiele schreibst. Funktionen zu testen, die
+Luanti-Funktionen aufrufen, ist ziemlich schwierig. Zum Glück haben wir
+im vorigen Kapitel~(Kapitel~\ref{ch:quality/clean-arch}) besprochen, wie
+du deinen Code so aufbaust, dass sich das vermeiden lässt.
+
+\section{Busted installieren}\label{busted-installieren}
+
+Zuerst installierst du LuaRocks:
+
+\begin{itemize}
+\tightlist
+\item
+  Windows: Folge der Installationsanleitung im LuaRocks-Wiki\footnote{\url{https://github.com/luarocks/luarocks/wiki/Installation-instructions-for-Windows}}
+  (englisch).
+\item
+  Debian/Ubuntu: \texttt{sudo apt install luarocks}
+\end{itemize}
+
+Dann installierst du Busted global:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sudo luarocks install busted}
+\end{Highlighting}
+\end{Shaded}
+
+Zum Schluss prüfst du, ob es installiert ist:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{busted {-}{-}version}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Dein erster Test}\label{dein-erster-test}
+
+Busted ist das führende Framework für Unit-Tests in Lua. Es sucht nach
+Lua-Dateien, deren Name auf \texttt{\_\allowbreak{}spec} endet, und
+führt sie in einer eigenständigen Lua-Umgebung aus.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mymod/}
+\NormalTok{├── init.lua}
+\NormalTok{├── api.lua}
+\NormalTok{└── tests}
+\NormalTok{    └── api\_spec.lua}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{init.lua}\label{init.lua}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{mymod} \OperatorTok{=} \OperatorTok{\{\}}
+
+\FunctionTok{dofile}\OperatorTok{(}\VariableTok{core}\OperatorTok{.}\NormalTok{get\_modpath}\OperatorTok{(}\StringTok{"mymod"}\OperatorTok{)} \OperatorTok{..} \StringTok{"/api.lua"}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{api.lua}\label{api.lua}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{function} \VariableTok{mymod}\OperatorTok{.}\NormalTok{add}\OperatorTok{(}\VariableTok{x}\OperatorTok{,} \VariableTok{y}\OperatorTok{)}
+    \ControlFlowTok{return} \VariableTok{x} \OperatorTok{+} \VariableTok{y}
+\KeywordTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{tests/api\_spec.lua}\label{testsapi_spec.lua}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Benötigte Dateien im Mod{-}Verzeichnis suchen}
+\VariableTok{package.path} \OperatorTok{=} \StringTok{"./?.lua;"} \OperatorTok{..} \VariableTok{package.path}
+
+\CommentTok{{-}{-} Globale Tabelle mymod anlegen, in die die API schreibt}
+\ConstantTok{\_G}\OperatorTok{.}\VariableTok{mymod} \OperatorTok{=} \OperatorTok{\{\}}
+\CommentTok{{-}{-} api.lua ausführen}
+\FunctionTok{require}\OperatorTok{(}\StringTok{"api"}\OperatorTok{)}
+
+\CommentTok{{-}{-} Tests}
+\NormalTok{describe}\OperatorTok{(}\StringTok{"add"}\OperatorTok{,} \KeywordTok{function}\OperatorTok{()}
+\NormalTok{    it}\OperatorTok{(}\StringTok{"addiert"}\OperatorTok{,} \KeywordTok{function}\OperatorTok{()}
+        \VariableTok{assert}\OperatorTok{.}\NormalTok{equals}\OperatorTok{(}\DecValTok{2}\OperatorTok{,} \VariableTok{mymod}\OperatorTok{.}\NormalTok{add}\OperatorTok{(}\DecValTok{1}\OperatorTok{,} \DecValTok{1}\OperatorTok{))}
+    \KeywordTok{end}\OperatorTok{)}
+
+\NormalTok{    it}\OperatorTok{(}\StringTok{"kann mit negativen Zahlen umgehen"}\OperatorTok{,} \KeywordTok{function}\OperatorTok{()}
+        \VariableTok{assert}\OperatorTok{.}\NormalTok{equals}\OperatorTok{(}\DecValTok{0}\OperatorTok{,} \VariableTok{mymod}\OperatorTok{.}\NormalTok{add}\OperatorTok{({-}}\DecValTok{1}\OperatorTok{,} \DecValTok{1}\OperatorTok{))}
+        \VariableTok{assert}\OperatorTok{.}\NormalTok{equals}\OperatorTok{({-}}\DecValTok{2}\OperatorTok{,} \VariableTok{mymod}\OperatorTok{.}\NormalTok{add}\OperatorTok{({-}}\DecValTok{1}\OperatorTok{,} \OperatorTok{{-}}\DecValTok{1}\OperatorTok{))}
+    \KeywordTok{end}\OperatorTok{)}
+\KeywordTok{end}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Jetzt kannst du die Tests ausführen, indem du im Verzeichnis des Mods
+ein Terminal öffnest und \texttt{busted .\allowbreak{}} aufrufst.
+
+Wichtig ist, dass die API-Datei die Tabelle nicht selbst anlegt, denn
+globale Variablen funktionieren in Busted anders. Jede Variable, die in
+Luanti global wäre, ist in Busted lokal zur Datei. Das wäre auch für
+Luanti der bessere Weg gewesen, aber dafür ist es jetzt zu spät.
+
+Außerdem sollten die Dateien, die du testest, möglichst keine Funktionen
+aufrufen, die nicht in ihnen selbst stehen. Meist schreibst du Tests
+jeweils nur für eine einzelne Datei.
+
+\section{Mocking: Externe Funktionen
+ersetzen}\label{mocking-externe-funktionen-ersetzen}
+
+\emph{Mocking\index{mocking@Mocking}} heißt, Funktionen zu ersetzen, von
+denen das Getestete abhängt. Das hat zwei Zwecke: Zum einen steht die
+Funktion in der Testumgebung womöglich nicht zur Verfügung, zum anderen
+möchtest du vielleicht Aufrufe der Funktion und ihre Argumente
+mitschneiden.
+
+Hast du die Ratschläge aus dem Kapitel Saubere
+Architektur~(Kapitel~\ref{ch:quality/clean-arch}) befolgt, hast du schon
+eine recht saubere Datei zum Testen. Dinge außerhalb deines Bereichs
+musst du aber trotzdem ersetzen -- etwa die View, wenn du Controller
+oder API testest. Hast du die Ratschläge nicht befolgt, wird es etwas
+schwieriger, weil du womöglich die Luanti-API ersetzen musst.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Wie oben eine Tabelle anlegen}
+\ConstantTok{\_G}\OperatorTok{.}\VariableTok{core} \OperatorTok{=} \OperatorTok{\{\}}
+
+\CommentTok{{-}{-} Die Mock{-}Funktion definieren}
+\KeywordTok{local} \VariableTok{chat\_send\_player\_calls} \OperatorTok{=} \OperatorTok{\{\}}
+\KeywordTok{function} \VariableTok{core}\OperatorTok{.}\NormalTok{chat\_send\_player}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \VariableTok{message}\OperatorTok{)}
+    \FunctionTok{table.insert}\OperatorTok{(}
+        \VariableTok{chat\_send\_player\_calls}\OperatorTok{,}
+        \OperatorTok{\{} \VariableTok{name} \OperatorTok{=} \VariableTok{name}\OperatorTok{,} \VariableTok{message} \OperatorTok{=} \VariableTok{message} \OperatorTok{\}}
+    \OperatorTok{)}
+\KeywordTok{end}
+
+\CommentTok{{-}{-} Tests}
+\NormalTok{describe}\OperatorTok{(}\StringTok{"list\_areas"}\OperatorTok{,} \KeywordTok{function}\OperatorTok{()}
+\NormalTok{    it}\OperatorTok{(}\StringTok{"gibt eine Zeile je Gebiet aus"}\OperatorTok{,} \KeywordTok{function}\OperatorTok{()}
+        \VariableTok{chat\_send\_player\_calls} \OperatorTok{=} \OperatorTok{\{\}} \CommentTok{{-}{-} Tabelle zurücksetzen}
+
+        \VariableTok{mymod}\OperatorTok{.}\NormalTok{list\_areas\_to\_chat}\OperatorTok{(}
+            \StringTok{"singleplayer"}\OperatorTok{,}
+            \StringTok{"singleplayer"}
+        \OperatorTok{)}
+
+        \VariableTok{assert}\OperatorTok{.}\NormalTok{equals}\OperatorTok{(}\DecValTok{2}\OperatorTok{,} \OperatorTok{\#}\VariableTok{chat\_send\_player\_calls}\OperatorTok{)}
+    \KeywordTok{end}\OperatorTok{)}
+
+\NormalTok{    it}\OperatorTok{(}\StringTok{"sendet an den richtigen Spieler"}\OperatorTok{,} \KeywordTok{function}\OperatorTok{()}
+        \VariableTok{chat\_send\_player\_calls} \OperatorTok{=} \OperatorTok{\{\}} \CommentTok{{-}{-} Tabelle zurücksetzen}
+
+        \VariableTok{mymod}\OperatorTok{.}\NormalTok{list\_areas\_to\_chat}\OperatorTok{(}
+            \StringTok{"singleplayer"}\OperatorTok{,}
+            \StringTok{"singleplayer"}
+        \OperatorTok{)}
+
+        \ControlFlowTok{for} \ConstantTok{\_}\OperatorTok{,} \VariableTok{call} \KeywordTok{in} \FunctionTok{pairs}\OperatorTok{(}\VariableTok{chat\_send\_player\_calls}\OperatorTok{)} \ControlFlowTok{do}
+            \VariableTok{assert}\OperatorTok{.}\NormalTok{equals}\OperatorTok{(}\StringTok{"singleplayer"}\OperatorTok{,} \VariableTok{call}\OperatorTok{.}\VariableTok{name}\OperatorTok{)}
+        \ControlFlowTok{end}
+    \KeywordTok{end}\OperatorTok{)}
+
+    \CommentTok{{-}{-} Die beiden Tests oben sind eigentlich überflüssig,}
+    \CommentTok{{-}{-} denn dieser prüft beides}
+\NormalTok{    it}\OperatorTok{(}\StringTok{"gibt das Richtige aus"}\OperatorTok{,} \KeywordTok{function}\OperatorTok{()}
+        \VariableTok{chat\_send\_player\_calls} \OperatorTok{=} \OperatorTok{\{\}} \CommentTok{{-}{-} Tabelle zurücksetzen}
+
+        \VariableTok{mymod}\OperatorTok{.}\NormalTok{list\_areas\_to\_chat}\OperatorTok{(}
+            \StringTok{"singleplayer"}\OperatorTok{,}
+            \StringTok{"singleplayer"}
+        \OperatorTok{)}
+
+        \KeywordTok{local} \VariableTok{expected} \OperatorTok{=} \OperatorTok{\{}
+            \OperatorTok{\{}
+                \VariableTok{name} \OperatorTok{=} \StringTok{"singleplayer"}\OperatorTok{,}
+                \VariableTok{message} \OperatorTok{=} \StringTok{"Rathaus (2,43,63)"}\OperatorTok{,}
+            \OperatorTok{\},}
+            \OperatorTok{\{}
+                \VariableTok{name} \OperatorTok{=} \StringTok{"singleplayer"}\OperatorTok{,}
+                \VariableTok{message} \OperatorTok{=} \StringTok{"Flughafen (43,45,63)"}\OperatorTok{,}
+            \OperatorTok{\},}
+        \OperatorTok{\}}
+        \VariableTok{assert}\OperatorTok{.}\NormalTok{same}\OperatorTok{(}\VariableTok{expected}\OperatorTok{,} \VariableTok{chat\_send\_player\_calls}\OperatorTok{)}
+    \KeywordTok{end}\OperatorTok{)}
+\KeywordTok{end}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Fazit}\label{fazit}
+
+Gut eingesetzt, verbessern Unit-Tests die Qualität und Zuverlässigkeit
+deines Projekts erheblich. Sie verlangen aber, dass du deinen Code
+anders aufbaust als üblich.
+
+Ein Beispiel für einen Mod mit vielen Unit-Tests ist crafting von
+rubenwardy\footnote{\url{https://github.com/rubenwardy/crafting}}.

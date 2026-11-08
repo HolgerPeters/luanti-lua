@@ -1,0 +1,205 @@
+\chapter{Erste Schritte}
+\label{ch:basics/getting-started}
+
+Den grundlegenden Aufbau eines Mod-Verzeichnisses zu verstehen, ist beim
+Erstellen von Mods unerlässlich. In diesem Kapitel erfährst du, wie
+Modding in Luanti funktioniert, und erstellst deinen ersten Mod.
+
+\section{Was sind Spiele und Mods?}\label{was-sind-spiele-und-mods}
+
+Die Stärke von Luanti liegt darin, dass sich Spiele einfach entwickeln
+lassen, ohne eigene Voxel-Grafik, Voxel-Algorithmen oder ausgefeilten
+Netzwerkcode schreiben zu müssen.
+
+In Luanti ist ein Spiel eine Sammlung von Modulen, die zusammenarbeiten,
+um den Inhalt und das Verhalten des Spiels bereitzustellen. Ein Modul,
+allgemein als Mod bezeichnet, ist eine Sammlung von Skripten und
+Ressourcen. Es ist möglich, ein Spiel mit nur einem Mod zu erstellen,
+aber das wird selten gemacht, weil sich dann Teile des Spiels nicht mehr
+so einfach unabhängig voneinander anpassen oder ersetzen lassen.
+
+Ebenso ist es möglich, Mods außerhalb eines Spiels zu verbreiten. Dann
+sind sie ebenfalls \emph{Mods}, aber im traditionelleren Sinn:
+\emph{Modifikationen}. Diese Mods verändern oder erweitern die
+Eigenschaften eines Spiels.
+
+Sowohl die Mods, die in einem Spiel enthalten sind, als auch Mods von
+Dritten nutzen dieselbe API (Programmierschnittstelle).
+
+Dieses Buch behandelt die wichtigsten Teile der Luanti-API und richtet
+sich gleichermaßen an Spieleentwickler und Modder.
+
+\section{Wo werden die Mods
+gespeichert?}\label{wo-werden-die-mods-gespeichert}
+
+Jeder Mod hat sein eigenes Verzeichnis, in dem sich seine
+Lua-Quelltexte, Texturen,\index{textur@Textur} Modelle und Tondateien
+befinden. Luanti sucht an verschiedenen Orten nach Mods. Diese Orte
+werden allgemein \emph{Mod-Ladepfade} genannt.
+
+Für eine bestimmte Welt werden drei Mod-Speicherorte geprüft, und zwar
+in dieser Reihenfolge:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Spiel-Mods. Das sind die Mods des Spiels, in dem die Welt läuft.\\
+  Z.~B.:
+  \texttt{minetest/\allowbreak{}games/\allowbreak{}minetest\_\allowbreak{}game/\allowbreak{}mods/\allowbreak{}}
+  oder\\
+  \texttt{/\allowbreak{}usr/\allowbreak{}share/\allowbreak{}minetest/\allowbreak{}games/\allowbreak{}minetest/\allowbreak{}}
+\item
+  Globale Mods. Der Ort, an dem Mods fast immer installiert werden. Im
+  Zweifelsfall legst du Mods hier ab.\\
+  Z.~B.: \texttt{minetest/\allowbreak{}mods/\allowbreak{}}
+\item
+  Welt-Mods. Der Ort für Mods, die zu einer bestimmten Welt gehören.\\
+  Z.~B.:
+  \texttt{minetest/\allowbreak{}worlds/\allowbreak{}world/\allowbreak{}worldmods/\allowbreak{}}
+\end{enumerate}
+
+\texttt{minetest} ist das
+Benutzerdatenverzeichnis.\index{benutzerdatenverzeichnis@Benutzerdatenverzeichnis}
+Seinen Ort findest du, indem du Luanti öffnest und in der Registerkarte
+„Über`` auf „Benutzerdatenverzeichnis öffnen`` klickst. Wurde Luanti
+über Flathub installiert, passiert bei diesem Klick unter Umständen
+nichts. Das Verzeichnis liegt dann normalerweise unter
+\texttt{\textasciitilde{}/.\allowbreak{}var/\allowbreak{}app/\allowbreak{}org.\allowbreak{}luanti.\allowbreak{}luanti/.\allowbreak{}minetest/\allowbreak{}}.
+
+Beim Laden prüft Luanti die oben genannten Orte der Reihe nach. Stößt es
+auf einen Mod mit demselben Namen wie ein zuvor gefundener, wird der
+spätere anstelle des früheren geladen. Du kannst also Spiel-Mods
+überschreiben, indem du einen gleichnamigen Mod in das globale
+Mod-Verzeichnis legst.
+
+\section{Deinen ersten Mod erstellen}\label{deinen-ersten-mod-erstellen}
+
+\subsection{Mod-Verzeichnis}\label{mod-verzeichnis}
+
+Geh in das globale Mod-Verzeichnis (Über \textgreater{}
+Benutzerdatenverzeichnis öffnen \textgreater{} mods) und lege einen
+neuen Ordner namens \texttt{mymod} an. \texttt{mymod} ist der Name des
+Mods.
+
+Jeder Mod sollte einen eindeutigen \emph{Mod-Namen} haben, eine
+technische Kennung (ID), über die auf den Mod verwiesen wird. Mod-Namen
+dürfen Buchstaben, Ziffern und Unterstriche enthalten. Ein guter Name
+beschreibt, was der Mod tut. Das Verzeichnis mit den Bestandteilen eines
+Mods muss genauso heißen wie der Mod. Ob ein Mod-Name noch frei ist,
+findest du mit einer Suche auf \url{https://content.luanti.org} heraus.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mymod}
+\NormalTok{├── textures}
+\NormalTok{│   └── mymod\_node.png}
+\NormalTok{├── init.lua}
+\NormalTok{└── mod.conf}
+\end{Highlighting}
+\end{Shaded}
+
+Ein Mod benötigt nur eine
+\texttt{init.\allowbreak{}lua}\index{init.lua@\texttt{init.\allowbreak{}lua}}.
+Eine
+\texttt{mod.\allowbreak{}conf}\index{mod.conf@\texttt{mod.\allowbreak{}conf}}
+wird jedoch empfohlen, und je nach Funktionsumfang können weitere
+Bestandteile nötig sein.
+
+\subsection{mod.conf}\label{mod.conf}
+
+Lege eine Datei \texttt{mod.\allowbreak{}conf} mit folgendem Inhalt an:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{name = mymod}
+\NormalTok{description = Fügt foo, bar und bo hinzu.}
+\NormalTok{depends = default}
+\end{Highlighting}
+\end{Shaded}
+
+Diese Datei enthält die Metadaten\index{metadaten@Metadaten} des Mods,
+darunter seinen Namen, seine Beschreibung und weitere Angaben.
+
+\subsection{init.lua}\label{init.lua}
+
+Lege eine Datei \texttt{init.\allowbreak{}lua} mit folgendem Inhalt an:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\OperatorTok{(}\StringTok{"Diese Datei wird beim Laden ausgeführt!"}\OperatorTok{)}
+
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_node}\OperatorTok{(}\StringTok{"mymod:node"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Das ist ein Node"}\OperatorTok{,}
+    \VariableTok{tiles} \OperatorTok{=} \OperatorTok{\{} \StringTok{"mymod\_node.png"} \OperatorTok{\},}
+    \VariableTok{groups} \OperatorTok{=} \OperatorTok{\{} \VariableTok{cracky} \OperatorTok{=} \DecValTok{1} \OperatorTok{\},}
+\OperatorTok{\})}
+
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craft}\OperatorTok{(\{}
+    \FunctionTok{type} \OperatorTok{=} \StringTok{"shapeless"}\OperatorTok{,}
+    \VariableTok{output} \OperatorTok{=} \StringTok{"mymod:node 3"}\OperatorTok{,}
+    \VariableTok{recipe} \OperatorTok{=} \OperatorTok{\{} \StringTok{"default:dirt"}\OperatorTok{,} \StringTok{"default:stone"} \OperatorTok{\},}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Die \texttt{init.\allowbreak{}lua} ist der Einstiegspunkt eines Mods und
+wird ausgeführt, wenn der Mod geladen wird.
+
+\subsection{Zusammenfassung}\label{zusammenfassung}
+
+Dieser Mod heißt „mymod``. Er besteht aus zwei Textdateien:
+\texttt{init.\allowbreak{}lua} und \texttt{mod.\allowbreak{}conf}. Das
+Skript gibt eine Nachricht aus und registriert dann einen Node und ein
+Handwerksrezept -- beides wird später erklärt. Es gibt eine einzige
+Abhängigkeit, den default-Mod\footnote{\url{https://content.luanti.org/metapackages/default/}},
+der normalerweise in Minetest Game enthalten ist. Außerdem liegt in
+\texttt{textures/\allowbreak{}} eine Textur für den Node.
+
+\section{Abhängigkeiten}\label{abhuxe4ngigkeiten}
+
+Eine Abhängigkeit besteht, wenn ein Mod einen anderen Mod benötigt, der
+vor ihm geladen werden muss. Ein Mod kann darauf angewiesen sein, dass
+Code, Gegenstände oder andere Ressourcen eines anderen Mods verfügbar
+sind.
+
+Es gibt zwei Arten von Abhängigkeiten: feste und optionale. Bei beiden
+wird der andere Mod zuerst geladen. Ist der Mod, von dem abgehangen
+wird, nicht verfügbar, führt eine feste Abhängigkeit dazu, dass der
+eigene Mod nicht geladen wird, während eine optionale Abhängigkeit
+höchstens dazu führt, dass weniger Funktionen zur Verfügung stehen.
+
+Eine optionale Abhängigkeit ist nützlich, wenn du einen anderen Mod
+optional unterstützen möchtest; so lassen sich zusätzliche Inhalte
+aktivieren, wenn der Benutzer beide Mods gleichzeitig verwendet.
+
+Abhängigkeiten werden in der \texttt{mod.\allowbreak{}conf} als
+kommagetrennte Liste angegeben:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{depends = modeins, modzwei}
+\NormalTok{optional\_depends = moddrei}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Mod-Pakete}\label{mod-pakete}
+
+Mods lassen sich zu Mod-Paketen\index{mod-paket@Mod-Paket} (Modpacks)
+zusammenfassen, sodass mehrere Mods gemeinsam verpackt und verschoben
+werden können. Das ist nützlich, wenn du einem Spieler mehrere Mods
+bereitstellen möchtest, ohne dass er jeden einzeln herunterladen muss.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{modpack1}
+\NormalTok{├── modpack.conf (erforderlich, kennzeichnet Mod{-}Paket)}
+\NormalTok{├── mod1}
+\NormalTok{│   └── ... Mod{-}Dateien}
+\NormalTok{└── mymod (optional)}
+\NormalTok{    └── ... Mod{-}Dateien}
+\end{Highlighting}
+\end{Shaded}
+
+Beachte, dass ein Mod-Paket kein \emph{Spiel} ist. Spiele haben eine
+eigene Verzeichnisstruktur, die im Kapitel „Spiele`` erklärt wird.

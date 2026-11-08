@@ -1,0 +1,130 @@
+\chapter{Sicherheit}
+\label{ch:quality/security}
+
+Sicherheit ist sehr wichtig, damit dein Mod nicht dazu führt, dass der
+Serverbetreiber Daten oder die Kontrolle verliert.
+
+\section{Grundprinzipien}\label{grundprinzipien}
+
+Das wichtigste Prinzip der Sicherheit lautet: \textbf{Vertraue niemals
+dem Benutzer.} Alles, was ein Benutzer übermittelt, ist als bösartig zu
+behandeln. Prüfe also immer, ob seine Eingaben gültig sind, ob er die
+nötigen Rechte hat und ob er die Aktion auch sonst ausführen darf (also
+etwa in Reichweite oder Besitzer ist).
+
+Eine bösartige Aktion muss nicht unbedingt Daten verändern oder
+zerstören; sie kann auch auf sensible Daten zugreifen, etwa auf
+Passwort-Hashes oder private Nachrichten. Besonders schlimm ist das,
+wenn der Server Angaben wie E-Mail-Adressen oder das Alter speichert,
+wie es manche zur Verifizierung tun.
+
+\section{Formspecs}\label{formspecs}
+
+\subsection{Eingaben niemals
+vertrauen}\label{eingaben-niemals-vertrauen}
+
+Jeder Benutzer kann fast jede Formspec\index{formspec@Formspec} mit
+beliebigen Werten jederzeit abschicken.
+
+Hier echter Code aus einem Mod:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_on\_player\_receive\_fields}\OperatorTok{(}
+    \KeywordTok{function}\OperatorTok{(}\VariableTok{player}\OperatorTok{,} \VariableTok{formname}\OperatorTok{,} \VariableTok{fields}\OperatorTok{)}
+        \ControlFlowTok{for} \VariableTok{key}\OperatorTok{,} \VariableTok{field} \KeywordTok{in} \FunctionTok{pairs}\OperatorTok{(}\VariableTok{fields}\OperatorTok{)} \ControlFlowTok{do}
+            \KeywordTok{local} \VariableTok{x}\OperatorTok{,} \VariableTok{y}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \FunctionTok{string.match}\OperatorTok{(}
+                \VariableTok{key}\OperatorTok{,}
+                \StringTok{"goto\_([\%d{-}]+)\_([\%d{-}]+)\_([\%d{-}]+)"}
+            \OperatorTok{)}
+            \ControlFlowTok{if} \VariableTok{x} \KeywordTok{and} \VariableTok{y} \KeywordTok{and} \VariableTok{z} \ControlFlowTok{then}
+                \VariableTok{player}\OperatorTok{:}\NormalTok{set\_pos}\OperatorTok{(\{}
+                    \VariableTok{x} \OperatorTok{=} \FunctionTok{tonumber}\OperatorTok{(}\VariableTok{x}\OperatorTok{),}
+                    \VariableTok{y} \OperatorTok{=} \FunctionTok{tonumber}\OperatorTok{(}\VariableTok{y}\OperatorTok{),}
+                    \VariableTok{z} \OperatorTok{=} \FunctionTok{tonumber}\OperatorTok{(}\VariableTok{z}\OperatorTok{),}
+                \OperatorTok{\})}
+                \ControlFlowTok{return} \KeywordTok{true}
+            \ControlFlowTok{end}
+        \ControlFlowTok{end}
+    \KeywordTok{end}
+\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Siehst du das Problem? Ein bösartiger Benutzer kann eine Formspec mit
+eigenen Positionswerten abschicken und sich so an jeden beliebigen Ort
+teleportieren. Mit modifizierten Clients ließe sich das sogar
+automatisieren -- praktisch ein \texttt{/\allowbreak{}teleport} ganz
+ohne Privileg.\index{privileg@Privileg}
+
+Die Lösung für solche Probleme ist ein
+Kontext~(Kapitel~\ref{ch:players/formspecs}), wie im Kapitel über
+Formspecs gezeigt.
+
+\subsection{Zeitpunkt der Prüfung ist nicht Zeitpunkt der
+Verwendung}\label{zeitpunkt-der-pruxfcfung-ist-nicht-zeitpunkt-der-verwendung}
+
+Jeder Benutzer kann jede Formspec mit beliebigen Werten jederzeit
+abschicken, außer wo die Engine es verhindert:
+
+\begin{itemize}
+\tightlist
+\item
+  Die Eingabe einer Node-Formspec wird blockiert, wenn der Benutzer zu
+  weit entfernt ist.
+\item
+  Seit Version 5.0 werden benannte Formspecs blockiert, die noch nicht
+  angezeigt wurden.
+\end{itemize}
+
+Prüfe deshalb im Handler, ob der Benutzer die Bedingungen erfüllt, unter
+denen die Formspec überhaupt angezeigt wird, und ebenso die Bedingungen
+für die jeweiligen Aktionen.
+
+Die Sicherheitslücke, die entsteht, wenn Rechte beim Anzeigen der
+Formspec, aber nicht beim Verarbeiten geprüft werden, heißt \emph{Time
+of Check is not Time of Use} (TOCTOU).
+
+\section{(Unsichere) Umgebungen}\label{unsichere-umgebungen}
+
+Luanti erlaubt Mods, eine Umgebung ohne Sandbox anzufordern, die Zugriff
+auf die vollständige Lua-API gibt.
+
+Siehst du die Sicherheitslücke im folgenden Code?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{ie} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{request\_insecure\_environment}\OperatorTok{()}
+\VariableTok{ie}\OperatorTok{.}\VariableTok{os}\OperatorTok{.}\NormalTok{execute}\OperatorTok{((}\StringTok{"path/to/prog \%d"}\OperatorTok{):}\FunctionTok{format}\OperatorTok{(}\DecValTok{3}\OperatorTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{string.\allowbreak{}format} ist eine Funktion in der global
+geteilten Tabelle \texttt{string}. Ein bösartiger Mod könnte diese
+Funktion überschreiben und so etwas an \texttt{os.\allowbreak{}execute}
+übergeben:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{string.format} \OperatorTok{=} \KeywordTok{function}\OperatorTok{()}
+    \ControlFlowTok{return} \StringTok{"xdg{-}open \textquotesingle{}http://example.com\textquotesingle{}"}
+\KeywordTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Der Mod könnte dabei viel Bösartigeres übergeben, als eine Website zu
+öffnen, etwa einem entfernten Angreifer die Kontrolle über den Rechner
+geben.
+
+Einige Regeln für unsichere Umgebungen:
+
+\begin{itemize}
+\tightlist
+\item
+  Speichere sie immer in einer lokalen Variablen und übergib sie nie an
+  eine Funktion.
+\item
+  Stelle sicher, dass du allen Eingaben an unsichere Funktionen
+  vertrauen kannst, um das obige Problem zu vermeiden. Vermeide also
+  global überschreibbare Funktionen.
+\end{itemize}

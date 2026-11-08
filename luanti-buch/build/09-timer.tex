@@ -1,0 +1,124 @@
+\chapter{Node-Timer und ABMs}
+\label{ch:map/timers}
+
+Eine Funktion regelmäßig auf bestimmten Nodes auszuführen, ist eine
+häufige Aufgabe. Luanti bietet dafür zwei Wege: \emph{Active Block
+Modifiers} (ABMs)\index{abm@ABM} und
+Node-Timer.\index{node-timer@Node-Timer}
+
+ABMs durchsuchen alle geladenen Mapblöcke nach Nodes, die bestimmte
+Kriterien erfüllen. Sie eignen sich am besten für Nodes, die in der Welt
+häufig vorkommen, etwa Gras. Sie kosten viel Rechenzeit, aber wenig
+Arbeits- und Speicherplatz.
+
+Für seltene Nodes oder solche, die ohnehin
+Metadaten\index{metadaten@Metadaten} verwenden, etwa Öfen und Maschinen,
+solltest du stattdessen Node-Timer verwenden. Node-Timer merken sich die
+anstehenden Timer in jedem Mapblock\index{mapblock@Mapblock} und führen
+sie aus, sobald sie ablaufen. Sie müssen also nicht alle geladenen Nodes
+nach Treffern durchsuchen, brauchen dafür aber etwas mehr Arbeits- und
+Speicherplatz, um die anstehenden Timer zu verwalten.
+
+\section{Node-Timer}\label{node-timer}
+
+Node-Timer sind direkt an einen einzelnen Node gebunden. Du steuerst sie
+über ein \texttt{NodeTimerRef}-Objekt:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{timer} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_node\_timer}\OperatorTok{(}\VariableTok{pos}\OperatorTok{)}
+\VariableTok{timer}\OperatorTok{:}\NormalTok{start}\OperatorTok{(}\DecValTok{10.5}\OperatorTok{)} \CommentTok{{-}{-} in Sekunden}
+\end{Highlighting}
+\end{Shaded}
+
+Läuft ein Node-Timer ab, wird die Methode
+\texttt{on\_\allowbreak{}timer}\index{callback@Callback!on_timer@\texttt{on\_\allowbreak{}timer}}
+in der Definitionstabelle des Nodes aufgerufen. Sie bekommt nur einen
+Parameter, die Position des Nodes:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_node}\OperatorTok{(}\StringTok{"autodoors:door\_open"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{on\_timer} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}\VariableTok{pos}\OperatorTok{)}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{set\_node}\OperatorTok{(}\VariableTok{pos}\OperatorTok{,} \OperatorTok{\{} \VariableTok{name} \OperatorTok{=} \StringTok{"autodoors:door"} \OperatorTok{\})}
+        \ControlFlowTok{return} \KeywordTok{false}
+    \KeywordTok{end}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Gibt \texttt{on\_\allowbreak{}timer} \texttt{true} zurück, läuft der
+Timer mit demselben Intervall erneut. Du kannst auch innerhalb von
+\texttt{on\_\allowbreak{}timer}
+\texttt{get\_\allowbreak{}node\_\allowbreak{}timer(pos)} verwenden; gib
+dann aber \texttt{false} zurück, um Konflikte zu vermeiden.
+
+Timer haben eine Einschränkung: Aus Optimierungsgründen gibt es je
+Node-Typ nur eine Art von Timer, und je Node kann nur ein Timer laufen.
+
+\section{Active Block Modifiers}\label{active-block-modifiers}
+
+Alien-Gras ist für dieses Kapitel eine Grasart, die mit einer gewissen
+Wahrscheinlichkeit in der Nähe von Wasser erscheint.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_node}\OperatorTok{(}\StringTok{"aliens:grass"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Alien{-}Gras"}\OperatorTok{,}
+    \VariableTok{light\_source} \OperatorTok{=} \DecValTok{3}\OperatorTok{,} \CommentTok{{-}{-} Der Node leuchtet; min. 0, max. 14}
+    \VariableTok{tiles} \OperatorTok{=} \OperatorTok{\{} \StringTok{"aliens\_grass.png"} \OperatorTok{\},}
+    \VariableTok{groups} \OperatorTok{=} \OperatorTok{\{} \VariableTok{choppy} \OperatorTok{=} \DecValTok{1} \OperatorTok{\},}
+    \VariableTok{on\_use} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{item\_eat}\OperatorTok{(}\DecValTok{20}\OperatorTok{),}
+\OperatorTok{\})}
+
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_abm}\OperatorTok{(\{}
+    \VariableTok{nodenames} \OperatorTok{=} \OperatorTok{\{} \StringTok{"default:dirt\_with\_grass"} \OperatorTok{\},}
+    \VariableTok{neighbors} \OperatorTok{=} \OperatorTok{\{}
+        \StringTok{"default:water\_source"}\OperatorTok{,}
+        \StringTok{"default:water\_flowing"}\OperatorTok{,}
+    \OperatorTok{\},}
+    \VariableTok{interval} \OperatorTok{=} \DecValTok{10.0}\OperatorTok{,} \CommentTok{{-}{-} alle 10 Sekunden ausführen}
+    \VariableTok{chance} \OperatorTok{=} \DecValTok{50}\OperatorTok{,} \CommentTok{{-}{-} jeder Node wird mit Chance 1:50 gewählt}
+    \VariableTok{action} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}
+        \VariableTok{pos}\OperatorTok{,}
+        \VariableTok{node}\OperatorTok{,}
+        \VariableTok{active\_object\_count}\OperatorTok{,}
+        \VariableTok{active\_object\_count\_wider}
+    \OperatorTok{)}
+        \KeywordTok{local} \VariableTok{above} \OperatorTok{=}
+            \OperatorTok{\{} \VariableTok{x} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{x}\OperatorTok{,} \VariableTok{y} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{y} \OperatorTok{+} \DecValTok{1}\OperatorTok{,} \VariableTok{z} \OperatorTok{=} \VariableTok{pos}\OperatorTok{.}\VariableTok{z} \OperatorTok{\}}
+        \VariableTok{core}\OperatorTok{.}\NormalTok{set\_node}\OperatorTok{(}\VariableTok{above}\OperatorTok{,} \OperatorTok{\{} \VariableTok{name} \OperatorTok{=} \StringTok{"aliens:grass"} \OperatorTok{\})}
+    \KeywordTok{end}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Dieser ABM läuft alle zehn Sekunden, und für jeden passenden Node wird
+er mit einer Wahrscheinlichkeit von 1 zu 50 ausgeführt. Läuft der ABM
+auf einem Node, wird darüber ein Alien-Gras-Node gesetzt. Achtung: Dabei
+wird jeder Node gelöscht, der sich vorher an dieser Stelle befand. Um
+das zu verhindern, solltest du mit
+\texttt{core.\allowbreak{}get\_\allowbreak{}node}\index{core@\texttt{core}!get_node@\texttt{core.\allowbreak{}get\_\allowbreak{}node}}
+prüfen, ob dort Platz für das Gras ist.
+
+Die Angabe von Nachbarn (\texttt{neighbors}) ist optional. Gibst du
+mehrere Nachbarn an, genügt es, wenn einer davon vorhanden ist.
+
+Auch \texttt{chance} ist optional. Ohne Angabe läuft der ABM immer, wenn
+die übrigen Bedingungen erfüllt sind.
+
+\section{Jetzt bist du dran}\label{jetzt-bist-du-dran}
+
+\begin{itemize}
+\tightlist
+\item
+  Midas-Berührung: Lass Wasser alle 5 Sekunden mit einer
+  Wahrscheinlichkeit von 1 zu 100 zu Goldblöcken werden.
+\item
+  Verfall: Lass Holz zu Erde werden, wenn Wasser angrenzt.
+\item
+  Lauffeuer: Lass jeden Luft-Node in Flammen aufgehen. (Tipp:
+  \texttt{\textquotedbl{}air\textquotedbl{}} und
+  \texttt{\textquotedbl{}fire:basic\_\allowbreak{}flame\textquotedbl{}}.)
+  Warnung: Rechne damit, dass das Spiel abstürzt.
+\end{itemize}

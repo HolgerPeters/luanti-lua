@@ -1,0 +1,178 @@
+\chapter{Privilegien}
+\label{ch:players/privileges}
+
+Privilegien,\index{privileg@Privileg} kurz \emph{Privs}, erlauben
+Spielern bestimmte Aktionen. Serverbetreiber können Privilegien vergeben
+und entziehen und so steuern, was jeder Spieler darf.
+
+\section{Wann sind Privilegien
+sinnvoll?}\label{wann-sind-privilegien-sinnvoll}
+
+Ein Privileg sollte einem Spieler erlauben, etwas zu \emph{tun}.
+Privilegien sind \textbf{nicht} dazu da, eine Klasse oder einen Rang
+anzuzeigen.
+
+\textbf{Gute Privilegien:}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{interact}
+\item
+  \texttt{shout}
+\item
+  \texttt{noclip}
+\item
+  \texttt{fly}
+\item
+  \texttt{kick}
+\item
+  \texttt{ban}
+\item
+  \texttt{vote}
+\item
+  \texttt{worldedit}
+\item
+  \texttt{area\_\allowbreak{}admin} -- Admin-Funktionen eines einzelnen
+  Mods sind in Ordnung
+\end{itemize}
+
+\textbf{Schlechte Privilegien:}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{moderator}
+\item
+  \texttt{admin}
+\item
+  \texttt{elf}
+\item
+  \texttt{dwarf}
+\end{itemize}
+
+\section{Privilegien deklarieren}\label{privilegien-deklarieren}
+
+Ein neues Privileg legst du mit
+\texttt{register\_\allowbreak{}privilege} an:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_privilege}\OperatorTok{(}\StringTok{"vote"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Darf abstimmen"}\OperatorTok{,}
+    \VariableTok{give\_to\_singleplayer} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{give\_\allowbreak{}to\_\allowbreak{}singleplayer} ist
+standardmäßig \texttt{true}; in der Definition oben wäre es also
+eigentlich nicht nötig.
+
+\section{Privilegien prüfen}\label{privilegien-pruxfcfen}
+
+So prüfst du schnell, ob ein Spieler alle nötigen Privilegien hat:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{has}\OperatorTok{,} \VariableTok{missing} \OperatorTok{=}
+    \VariableTok{core}\OperatorTok{.}\NormalTok{check\_player\_privs}\OperatorTok{(}\VariableTok{player\_or\_name}\OperatorTok{,} \OperatorTok{\{}
+        \VariableTok{interact} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+        \VariableTok{vote} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+    \OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Hier ist \texttt{has} gleich \texttt{true}, wenn der Spieler alle
+nötigen Privilegien hat. Ist \texttt{has} gleich \texttt{false}, enthält
+\texttt{missing} eine Schlüssel-Wert-Tabelle der fehlenden Privilegien.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{has}\OperatorTok{,} \VariableTok{missing} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{check\_player\_privs}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{interact} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+    \VariableTok{vote} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+\OperatorTok{\})}
+
+\ControlFlowTok{if} \VariableTok{has} \ControlFlowTok{then}
+    \FunctionTok{print}\OperatorTok{(}\StringTok{"Spieler hat alle Privilegien!"}\OperatorTok{)}
+\ControlFlowTok{else}
+    \FunctionTok{print}\OperatorTok{(}\StringTok{"Spieler fehlen Privilegien: "} \OperatorTok{..} \FunctionTok{dump}\OperatorTok{(}\VariableTok{missing}\OperatorTok{))}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+Brauchst du die fehlenden Privilegien nicht, kannst du
+\texttt{check\_\allowbreak{}player\_\allowbreak{}privs} direkt in die
+\texttt{if}-Anweisung schreiben.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{if}
+    \KeywordTok{not} \VariableTok{core}\OperatorTok{.}\NormalTok{check\_player\_privs}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \OperatorTok{\{} \VariableTok{interact} \OperatorTok{=} \KeywordTok{true} \OperatorTok{\})}
+\ControlFlowTok{then}
+    \ControlFlowTok{return} \KeywordTok{false}\OperatorTok{,} \StringTok{"Dafür brauchst du interact!"}
+\ControlFlowTok{end}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Privilegien lesen und
+setzen}\label{privilegien-lesen-und-setzen}
+
+Die Privilegien eines Spielers kannst du lesen und ändern, egal ob er
+online ist oder nicht.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{privs} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_player\_privs}\OperatorTok{(}\VariableTok{name}\OperatorTok{)}
+\FunctionTok{print}\OperatorTok{(}\FunctionTok{dump}\OperatorTok{(}\VariableTok{privs}\OperatorTok{))}
+
+\VariableTok{privs}\OperatorTok{.}\VariableTok{vote} \OperatorTok{=} \KeywordTok{true}
+\VariableTok{core}\OperatorTok{.}\NormalTok{set\_player\_privs}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \VariableTok{privs}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Privilegien werden immer als Schlüssel-Wert-Tabelle angegeben: Der
+Schlüssel ist der Name des Privilegs, der Wert ein Wahrheitswert.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{\{}
+    \VariableTok{fly} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+    \VariableTok{interact} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+    \VariableTok{shout} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+\OperatorTok{\},}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Privilegien zu basic\_privs
+hinzufügen}\label{privilegien-zu-basic_privs-hinzufuxfcgen}
+
+Spieler mit dem Privileg \texttt{basic\_\allowbreak{}privs} dürfen eine
+begrenzte Auswahl an Privilegien vergeben und entziehen. Üblicherweise
+bekommen Moderatoren dieses Privileg, damit sie \texttt{interact} und
+\texttt{shout} vergeben und entziehen können, sich selbst oder anderen
+aber keine leichter missbrauchbaren Privilegien wie \texttt{give} oder
+\texttt{server} geben können.
+
+Welche Privilegien deine Moderatoren vergeben und entziehen dürfen,
+legst du über die Einstellung \texttt{basic\_\allowbreak{}privs} fest.
+
+Standardmäßig hat \texttt{basic\_\allowbreak{}privs} diesen Wert:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{basic\_privs = interact, shout}
+\end{Highlighting}
+\end{Shaded}
+
+Um \texttt{vote} hinzuzufügen, änderst du ihn so:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{basic\_privs = interact, shout, vote}
+\end{Highlighting}
+\end{Shaded}
+
+Damit dürfen Spieler mit \texttt{basic\_\allowbreak{}privs} das Privileg
+\texttt{vote} vergeben und entziehen.

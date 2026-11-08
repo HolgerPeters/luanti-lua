@@ -1,0 +1,100 @@
+\chapter{Spielerphysik}
+\label{ch:players/player-physics}
+
+Die Physik eines Spielers lässt sich mit \emph{Physik-Overrides}
+verändern. Damit setzt du Gehgeschwindigkeit, Sprungkraft und
+Schwerkraft. Physik-Overrides gelten jeweils für einen einzelnen Spieler
+und sind Faktoren: Ein Wert von 2 für die Schwerkraft macht sie zum
+Beispiel doppelt so stark.
+
+\section{Ein einfaches Beispiel}\label{ein-einfaches-beispiel}
+
+Hier ein Befehl \texttt{/\allowbreak{}antigravity}, der den aufrufenden
+Spieler in geringe Schwerkraft versetzt:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_chatcommand}\OperatorTok{(}\StringTok{"antigravity"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{func} \OperatorTok{=} \KeywordTok{function}\OperatorTok{(}\VariableTok{name}\OperatorTok{,} \VariableTok{param}\OperatorTok{)}
+        \KeywordTok{local} \VariableTok{player} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\NormalTok{get\_player\_by\_name}\OperatorTok{(}\VariableTok{name}\OperatorTok{)}
+        \ControlFlowTok{if} \KeywordTok{not} \VariableTok{player} \ControlFlowTok{then}
+            \ControlFlowTok{return} \KeywordTok{false}\OperatorTok{,} \StringTok{"Nur für Spieler im Spiel"}
+        \ControlFlowTok{end}
+        \VariableTok{player}\OperatorTok{:}\NormalTok{set\_physics\_override}\OperatorTok{(\{}
+            \VariableTok{gravity} \OperatorTok{=} \DecValTok{0.1}\OperatorTok{,} \CommentTok{{-}{-} 10 \% der normalen Schwerkraft}
+        \OperatorTok{\})}
+    \KeywordTok{end}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Verfügbare Overrides}\label{verfuxfcgbare-overrides}
+
+\texttt{player:set\_\allowbreak{}physics\_\allowbreak{}override()}
+bekommt eine Tabelle mit Overrides. Laut Lua-API-Referenz\footnote{\url{https://api.luanti.org/class-reference/\#player-only-no-op-for-other-objects}}
+sind die wichtigsten:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{speed}: Faktor für die Gehgeschwindigkeit (Standard: 1)
+\item
+  \texttt{jump}: Faktor für die Sprungkraft (Standard: 1)
+\item
+  \texttt{gravity}: Faktor für die Schwerkraft (Standard: 1)
+\item
+  \texttt{sneak}: ob der Spieler schleichen kann (Standard:
+  \texttt{true})
+\end{itemize}
+
+Seit Luanti 5.8 gibt es weitere Overrides, etwa
+\texttt{speed\_\allowbreak{}climb}, \texttt{speed\_\allowbreak{}crouch},
+\texttt{liquid\_\allowbreak{}fluidity},
+\texttt{liquid\_\allowbreak{}sink},
+\texttt{acceleration\_\allowbreak{}default} und
+\texttt{acceleration\_\allowbreak{}air}. Die vollständige Liste steht in
+der Lua-API-Referenz.
+
+\subsection{Altes Bewegungsverhalten}\label{altes-bewegungsverhalten}
+
+Vor Version 0.4.16 gab es den \emph{Sneak-Glitch}, der verschiedene
+Bewegungstricks erlaubte. So konnte man mit einer bestimmten Anordnung
+von Nodes einen „Aufzug`` hochklettern, indem man schlich (Shift) und
+dabei die Leertaste drückte. Das Verhalten war zwar unbeabsichtigt, ist
+aber in den Overrides erhalten geblieben, weil viele Server es nutzen.
+
+Um das alte Bewegungsverhalten vollständig wiederherzustellen, braucht
+es zwei Overrides:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{new\_\allowbreak{}move}: ob der Spieler die neue Bewegung
+  verwendet (Standard: \texttt{true})
+\item
+  \texttt{sneak\_\allowbreak{}glitch}: ob der Spieler
+  „Schleich-Aufzüge`` nutzen kann (Standard: \texttt{false})
+\end{itemize}
+
+\section{Unverträglichkeit zwischen
+Mods}\label{unvertruxe4glichkeit-zwischen-mods}
+
+Achtung: Mods, die denselben Physikwert eines Spielers überschreiben,
+vertragen sich meist nicht miteinander. Ein Override überschreibt alle
+zuvor gesetzten. Setzen also mehrere Mods die Geschwindigkeit eines
+Spielers, gilt nur der zuletzt gesetzte Wert.
+
+\section{Jetzt bist du dran}\label{jetzt-bist-du-dran}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Sonic}: Setze den Geschwindigkeitsfaktor auf einen hohen Wert
+  (mindestens 6), wenn ein Spieler dem Spiel beitritt.
+\item
+  \textbf{Superfeder}: Erhöhe die Sprungkraft, sodass der Spieler 20
+  Meter hoch springen kann (1 Meter entspricht 1 Node).
+\item
+  \textbf{Weltraum}: Lass die Schwerkraft abnehmen, je höher der Spieler
+  kommt.
+\end{itemize}

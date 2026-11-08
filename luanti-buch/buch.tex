@@ -1,0 +1,176 @@
+\documentclass[
+  paper=a4,
+  fontsize=12pt,
+  twoside,
+  BCOR=8mm,
+  DIV=calc,
+  headings=small,
+  parskip=half-,
+  footnotes=multiple,
+  numbers=noendperiod,
+  ngerman,
+]{scrbook}
+
+\usepackage[ngerman]{babel}
+\usepackage{fontspec}
+\setmainfont{IBM Plex Serif}
+\setsansfont{IBM Plex Sans}
+\setmonofont{IBM Plex Mono}[Scale=MatchLowercase]
+\usepackage[babel=true]{microtype}
+\usepackage[autostyle]{csquotes}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{longtable,booktabs,array,calc}
+\usepackage{float}
+\floatplacement{figure}{H}
+\usepackage{scrlayer-scrpage}
+\usepackage[noautomatic]{imakeidx}
+\makeindex[intoc,columns=2,title=Stichwortverzeichnis]
+\indexsetup{othercode=\small}
+\newcommand{\indexgroup}[1]{\par\pagebreak[2]\bigskip{\sffamily\bfseries\color{akzent}#1}\par\nopagebreak\smallskip}
+\usepackage[hidelinks,unicode]{hyperref}
+\usepackage{xurl}
+
+\recalctypearea
+\makeatletter\renewcommand*\@pnumwidth{2.2em}\makeatother % dreistellige Seitenzahlen im Inhaltsverzeichnis
+% Platz für zweistellige Kapitelnummern (10.1.1) im Inhaltsverzeichnis
+\DeclareTOCStyleEntry[numwidth=2.8em]{tocline}{section}
+\DeclareTOCStyleEntry[indent=4.3em,numwidth=3.8em]{tocline}{subsection}
+\setlength{\emergencystretch}{3em}
+
+% --- Farben (druckfreundlich, auch in Graustufen lesbar)
+\definecolor{codebg}{gray}{0.95}
+\definecolor{codekw}{HTML}{1F4E79}
+\definecolor{codestr}{HTML}{7A3E00}
+\definecolor{codecom}{gray}{0.40}
+\definecolor{akzent}{HTML}{1F4E79}
+
+% --- Überschriften und Kolumnentitel
+\addtokomafont{disposition}{\color{akzent}}
+\addtokomafont{chapterentry}{\color{black}}
+\pagestyle{scrheadings}
+\clearpairofpagestyles
+\automark[section]{chapter}
+\ohead{\headmark}
+\ofoot*{\pagemark}
+\setkomafont{pageheadfoot}{\normalfont\sffamily\footnotesize}
+
+% --- Code (Hervorhebung durch pandoc/skylighting, Makros in build/highlight.tex)
+\usepackage{fvextra}
+\input{build/highlight}
+\fvset{fontsize=\small,breaklines=true,listparameters={\setlength{\topsep}{0pt}\setlength{\partopsep}{0pt}}}
+\setlength{\FrameSep}{0.6em}
+% Kasten mit Innenabstand, aber innerhalb des Satzspiegels
+\renewenvironment{Shaded}{%
+  \def\FrameCommand{\fboxsep=\FrameSep\colorbox{shadecolor}}%
+  \MakeFramed{\advance\hsize-\width\FrameRestore}%
+  \parskip=0pt\topsep=0pt\partopsep=0pt}%
+  {\endMakeFramed}
+
+% Hinweiskasten (im Original: notice.html)
+\newenvironment{hinweis}[1]{%
+  \def\FrameCommand{{\color{akzent}\vrule width 2.5pt}\hspace{0.8em}}%
+  \MakeFramed{\advance\hsize-\width\FrameRestore}%
+  \noindent{\sffamily\bfseries\color{akzent}#1}\par\nobreak}%
+  {\endMakeFramed}
+
+% pandoc-Hilfsmakros
+\providecommand{\pandocbounded}[1]{#1}
+\setkomafont{caption}{\small\sffamily}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\newcommand{\passthrough}[1]{#1}
+
+\hypersetup{
+  pdftitle={Luanti-Modding-Buch},
+  pdfauthor={rubenwardy},
+  pdflang={de-DE},
+}
+
+\begin{document}
+
+% ---------------------------------------------------------------- Titelei
+\frontmatter
+
+\extratitle{\centering\vspace*{0.3\textheight}
+  {\usekomafont{title}\Huge Luanti-Modding-Buch}}
+\titlehead{}
+\title{Luanti-Modding-Buch}
+\subtitle{Eigene Mods und Spiele für Luanti entwickeln}
+\author{rubenwardy}
+\publishers{%
+  \normalsize
+  Lektorat: Shara}
+\date{}
+
+\uppertitleback{}
+\lowertitleback{\small
+  \textbf{Luanti-Modding-Buch}\\
+  Originaltitel: \emph{Luanti Modding Book}\\[1ex]
+  Text: rubenwardy, \url{https://rubenwardy.com}\\[1ex]
+  Quelle: \url{https://gitlab.com/rubenwardy/minetest_modding_book}\\
+  Stand der Quelle: Commit b3904f8 (23.\,10.\,2026)\\[1ex]
+  Dieses Werk ist lizenziert unter der Creative-Commons-Lizenz
+  \enquote{Namensnennung -- Weitergabe unter gleichen Bedingungen 4.0
+  International} (CC BY-SA 4.0):\\
+  \url{https://creativecommons.org/licenses/by-sa/4.0/deed.de}\\[1ex]
+  Die deutsche Übersetzung wurde für diese Ausgabe aus dem englischen
+  Original erstellt. Die Bezeichnung \enquote{Minetest} wurde
+  durchgehend auf \enquote{Luanti}, der API-Namensraum \texttt{minetest} auf
+  \texttt{core} aktualisiert.\\[1ex]
+  Gesetzt aus der IBM Plex mit \LaTeX{} und KOMA-Script.}
+
+\maketitle
+
+\tableofcontents
+
+\input{build/00-einleitung}
+
+% ---------------------------------------------------------------- Hauptteil
+\mainmatter
+
+\part{Grundlagen}
+\input{build/01-erste-schritte}
+\input{build/02-lua}
+
+\part{Items}
+\input{build/03-nodes-items-crafting}
+\input{build/04-callbacks}
+\input{build/05-texturen}
+\input{build/06-zeichnungstypen}
+\input{build/07-inventare}
+
+\part{Karte}
+\input{build/08-karte}
+\input{build/09-timer}
+\input{build/10-speicherung}
+\input{build/11-objekte}
+
+\part{Spieler}
+\input{build/12-privilegien}
+\input{build/13-chat}
+\input{build/14-spielerphysik}
+\input{build/15-formspecs}
+\input{build/16-hud}
+
+\part{Fortgeschrittene Kartenbearbeitung}
+\input{build/17-biome}
+\input{build/18-lvm}
+
+\part{Spiele}
+\input{build/19-spiele}
+
+\part{Qualität}
+\input{build/20-uebersetzungen}
+\input{build/21-haeufige-fehler}
+\input{build/22-luacheck}
+\input{build/23-sicherheit}
+\input{build/24-architektur}
+\input{build/25-unit-tests}
+\input{build/26-veroeffentlichen}
+\input{build/27-weiterlesen}
+
+% ---------------------------------------------------------------- Anhang
+\backmatter
+\printindex
+
+\end{document}

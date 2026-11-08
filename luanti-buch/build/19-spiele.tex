@@ -1,0 +1,110 @@
+\chapter{Spiele erstellen}
+\label{ch:games/games}
+
+Die Stärke von Luanti liegt darin, dass sich Spiele einfach entwickeln
+lassen, ohne eigene Voxel-Grafik, Voxel-Algorithmen oder ausgefeilten
+Netzwerkcode schreiben zu müssen.
+
+\section{Was ist ein Spiel?}\label{was-ist-ein-spiel}
+
+Ein Spiel ist eine Sammlung von Mods, die zusammen ein stimmiges Ganzes
+ergeben. Ein gutes Spiel hat ein durchgängiges Thema und eine Richtung:
+Es kann zum Beispiel ein klassisches Bau- und Abbauspiel mit harten
+Überlebenselementen sein oder eine Weltraumsimulation mit
+Steampunk-Automatisierung.
+
+Spieldesign ist ein komplexes Thema und ein eigenes Fachgebiet. Dieses
+Buch kann es nur kurz streifen.
+
+\section{Spielverzeichnis}\label{spielverzeichnis}
+
+Aufbau und Ort eines Spiels kommen dir nach der Arbeit mit Mods recht
+vertraut vor. Spiele liegen in einem Spielverzeichnis, etwa
+\texttt{minetest/\allowbreak{}games/\allowbreak{}foo\_\allowbreak{}game}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{foo\_game}
+\NormalTok{├── game.conf}
+\NormalTok{├── menu}
+\NormalTok{│   ├── header.png}
+\NormalTok{│   ├── background.png}
+\NormalTok{│   └── icon.png}
+\NormalTok{├── minetest.conf}
+\NormalTok{├── mods}
+\NormalTok{│   └── ... Mods}
+\NormalTok{├── README.txt}
+\NormalTok{└── settingtypes.txt}
+\end{Highlighting}
+\end{Shaded}
+
+Nötig ist nur der Ordner \texttt{mods};
+\texttt{game.\allowbreak{}conf}\index{game.conf@\texttt{game.\allowbreak{}conf}}
+und \texttt{menu/\allowbreak{}icon.\allowbreak{}png} werden aber
+empfohlen. Eine einfache \texttt{game.\allowbreak{}conf} sieht so aus:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{title = Foo Game}
+\NormalTok{description = Ein Spiel über Foo.}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Kompatibilität zwischen
+Spielen}\label{kompatibilituxe4t-zwischen-spielen}
+
+\subsection{API-Kompatibilität}\label{api-kompatibilituxe4t}
+
+Es lohnt sich, so viel API-Kompatibilität mit Minetest Game zu wahren,
+wie es sich einrichten lässt. Dann lassen sich Mods viel leichter auf
+ein anderes Spiel übertragen.
+
+Am besten wahrst du die Kompatibilität mit einem anderen Spiel, indem du
+die API-Kompatibilität mit gleichnamigen Mods wahrst. Trägt ein Mod
+denselben Namen wie ein anderer -- auch wie ein Mod von Dritten --,
+sollte er also eine kompatible API haben. Enthält ein Spiel zum Beispiel
+einen Mod namens \texttt{doors}, sollte er dieselbe API haben wie
+\texttt{doors} in Minetest Game.
+
+Die API-Kompatibilität eines Mods setzt sich zusammen aus:
+
+\begin{itemize}
+\tightlist
+\item
+  der Lua-API-Tabelle -- alle dokumentierten oder beworbenen Funktionen
+  in der gleichnamigen globalen Tabelle, zum Beispiel
+  \texttt{mobs.\allowbreak{}register\_\allowbreak{}mob};
+\item
+  den registrierten Nodes und Items -- also dass diese vorhanden sind.
+\end{itemize}
+
+Kleine Brüche sind nicht so schlimm, etwa wenn eine beiläufige
+Hilfsfunktion fehlt, die eigentlich nur intern verwendet wurde. Größere
+Brüche bei Kernfunktionen sind dagegen sehr schlecht.
+
+Mit einem riesigen Alleskönner-Mod wie \emph{default} in Minetest Game
+ist API-Kompatibilität kaum zu wahren. In diesem Fall sollte das Spiel
+keinen Mod namens \texttt{default} enthalten.
+
+API-Kompatibilität betrifft auch andere Mods und Spiele von Dritten.
+Achte also darauf, dass neue Mods einen eindeutigen Namen haben. Ob ein
+Mod-Name schon vergeben ist, findest du mit einer Suche auf
+\url{https://content.luanti.org/} heraus.
+
+\subsection{Gruppen und Aliase}\label{gruppen-und-aliase}
+
+Gruppen\index{gruppe@Gruppe} und Aliase\index{alias@Alias} helfen beide,
+die Kompatibilität zwischen Spielen zu wahren, denn mit ihnen dürfen
+sich Itemnamen zwischen Spielen unterscheiden. Häufige Nodes wie Stein
+und Holz sollten Gruppen haben, die das Material angeben. Es ist
+außerdem sinnvoll, Aliase von \texttt{default}-Nodes auf ihre direkten
+Entsprechungen anzulegen.
+
+\section{Jetzt bist du dran}\label{jetzt-bist-du-dran}
+
+\begin{itemize}
+\tightlist
+\item
+  Erstelle ein einfaches Spiel, in dem der Spieler Punkte bekommt, wenn
+  er besondere Blöcke abbaut.
+\end{itemize}

@@ -1,0 +1,410 @@
+\chapter{Nodes, Items und Craften}
+\label{ch:items/nodes-items-crafting}
+
+Neue Nodes und Craftitems\index{craftitem@Craftitem} zu registrieren und
+Craftingrezepte\index{craftingrezept@Craftingrezept} anzulegen, gehört
+zu den Grundlagen vieler Mods.
+
+\section{Was sind Nodes und Items?}\label{was-sind-nodes-und-items}
+
+Nodes, Craftitems und Werkzeuge sind alles Items. Ein Item ist etwas,
+das sich in einem Inventar\index{inventar@Inventar} befinden kann --
+selbst wenn das im normalen Spielverlauf nicht möglich ist.
+
+Ein Node ist ein Item, das platziert oder in der Welt gefunden werden
+kann. Jede Position in der Welt ist mit genau einem Node belegt --
+scheinbar leere Positionen sind normalerweise Luft-Nodes.
+
+Ein Craftitem kann nicht platziert werden. Es kommt nur in Inventaren
+oder als fallengelassenes Item in der Welt vor.
+
+Ein Werkzeug ist wie ein Craftitem, kann sich aber abnutzen. Während du
+das Werkzeug benutzt, sinkt der Abnutzungsbalken, bis das Werkzeug
+zerbricht. Werkzeuge lassen sich außerdem nie stapeln. Vermutlich werden
+Craftitems und Werkzeuge künftig zu einer einzigen Item-Art
+verschmelzen, da die Unterscheidung zwischen ihnen recht künstlich ist.
+
+\section{Items registrieren}\label{items-registrieren}
+
+Eine Item-Definition besteht aus einem \emph{Itemnamen} und einer
+\emph{Definitionstabelle}. Die Definitionstabelle enthält Attribute, die
+das Verhalten des Items bestimmen.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craftitem}\OperatorTok{(}\StringTok{"modname:itemname"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Mein besonderes Item"}\OperatorTok{,}
+    \VariableTok{inventory\_image} \OperatorTok{=} \StringTok{"modname\_itemname.png"}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Itemnamen}\label{itemnamen}
+
+Jedes Item hat einen Itemnamen, über den es angesprochen wird. Er hat
+folgendes Format:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{modname:itemname}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{modname} ist der Name des Mods, in dem das Item registriert
+wird, \texttt{itemname} der Name des Items selbst. Der Itemname sollte
+beschreiben, was das Item ist, und darf nicht bereits registriert sein.
+
+Sowohl \texttt{modname} als auch \texttt{itemname} sollten nur
+Kleinbuchstaben, Ziffern und Unterstriche enthalten.
+
+\subsection{Item-Aliase}\label{item-aliase}
+
+Items können auch \emph{Aliase\index{alias@Alias}} haben, die auf ihren
+Namen verweisen. Ein \emph{Alias} ist ein Pseudo-Itemname: Die Engine
+behandelt jedes Vorkommen des Alias so, als stünde dort der eigentliche
+Itemname. Dafür gibt es zwei häufige Anwendungsfälle:
+
+\begin{itemize}
+\tightlist
+\item
+  Entfernte Items umbenennen. Wird ein Item ohne Korrekturcode aus einem
+  Mod entfernt, können unbekannte Nodes in der Welt und in Inventaren
+  zurückbleiben.
+\item
+  Abkürzungen anlegen. \texttt{/\allowbreak{}giveme dirt} ist einfacher
+  als \texttt{/\allowbreak{}giveme default:dirt}.
+\end{itemize}
+
+Einen Alias zu registrieren, ist einfach. Die Reihenfolge der Argumente
+merkst du dir am besten als \texttt{von → nach}, wobei \emph{von} der
+Alias und \emph{nach} das Ziel ist.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_alias}\OperatorTok{(}\StringTok{"dirt"}\OperatorTok{,} \StringTok{"default:dirt"}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Mods müssen Aliase selbst auflösen, bevor sie direkt mit Itemnamen
+arbeiten, denn die Engine tut das nicht. Das geht aber ganz einfach:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{itemname} \OperatorTok{=} \VariableTok{core}\OperatorTok{.}\VariableTok{registered\_aliases}\OperatorTok{[}\VariableTok{itemname}\OperatorTok{]} \KeywordTok{or} \VariableTok{itemname}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Texturen}\label{texturen}
+
+Texturen\index{textur@Textur} gehören in den Ordner
+\texttt{textures/\allowbreak{}} und tragen Namen im Format
+\texttt{modname\_\allowbreak{}itemname.\allowbreak{}png}. JPEG-Texturen
+werden unterstützt, können aber keine Transparenz und sehen bei
+niedrigen Auflösungen meist schlecht aus. Meist ist PNG die bessere
+Wahl.
+
+Texturen in Luanti sind in der Regel 16 × 16 Pixel groß. Sie können jede
+Auflösung haben, empfohlen sind aber Zweierpotenzen, etwa 16, 32, 64
+oder 128. Andere Auflösungen werden auf älteren Geräten, besonders auf
+Smartphones, möglicherweise nicht richtig unterstützt und verschlechtern
+dann die Leistung.
+
+\section{Einen einfachen Node
+registrieren}\label{einen-einfachen-node-registrieren}
+
+Nodes werden ähnlich wie Items registriert, nur mit einer anderen
+Funktion:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_node}\OperatorTok{(}\StringTok{"mymod:diamond"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Alien{-}Diamant"}\OperatorTok{,}
+    \VariableTok{tiles} \OperatorTok{=} \OperatorTok{\{} \StringTok{"mymod\_diamond.png"} \OperatorTok{\},}
+    \VariableTok{is\_ground\_content} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+    \VariableTok{groups} \OperatorTok{=} \OperatorTok{\{} \VariableTok{cracky} \OperatorTok{=} \DecValTok{3}\OperatorTok{,} \VariableTok{stone} \OperatorTok{=} \DecValTok{1} \OperatorTok{\},}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Node-Definitionen können jede Eigenschaft einer Item-Definition
+enthalten und haben zusätzlich eigene, node-spezifische Eigenschaften.
+
+Die Eigenschaft \texttt{tiles} ist eine Tabelle mit den Texturnamen, die
+der Node verwendet. Gibt es nur eine Textur, wird sie auf allen Seiten
+verwendet. Für eine eigene Textur je Seite gibst du die Namen von sechs
+Texturen in dieser Reihenfolge an:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{oben (+Y), unten ({-}Y), rechts (+X), links ({-}X),}
+\NormalTok{hinten (+Z), vorne ({-}Z)}
+\end{Highlighting}
+\end{Shaded}
+
+Denk daran, dass +Y in Luanti nach oben zeigt, wie in den meisten
+3D-Computerspielen üblich.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_node}\OperatorTok{(}\StringTok{"mymod:diamond"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Alien{-}Diamant"}\OperatorTok{,}
+    \VariableTok{tiles} \OperatorTok{=} \OperatorTok{\{}
+        \StringTok{"mymod\_diamond\_up.png"}\OperatorTok{,} \CommentTok{{-}{-} y+}
+        \StringTok{"mymod\_diamond\_down.png"}\OperatorTok{,} \CommentTok{{-}{-} y{-}}
+        \StringTok{"mymod\_diamond\_right.png"}\OperatorTok{,} \CommentTok{{-}{-} x+}
+        \StringTok{"mymod\_diamond\_left.png"}\OperatorTok{,} \CommentTok{{-}{-} x{-}}
+        \StringTok{"mymod\_diamond\_back.png"}\OperatorTok{,} \CommentTok{{-}{-} z+}
+        \StringTok{"mymod\_diamond\_front.png"}\OperatorTok{,} \CommentTok{{-}{-} z{-}}
+    \OperatorTok{\},}
+    \VariableTok{is\_ground\_content} \OperatorTok{=} \KeywordTok{true}\OperatorTok{,}
+    \VariableTok{groups} \OperatorTok{=} \OperatorTok{\{} \VariableTok{cracky} \OperatorTok{=} \DecValTok{3} \OperatorTok{\},}
+    \VariableTok{drop} \OperatorTok{=} \StringTok{"mymod:diamond\_fragments"}\OperatorTok{,}
+    \CommentTok{{-}{-} \^{} statt des Diamanten Fragmente fallen lassen}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Das Attribut \texttt{is\_\allowbreak{}ground\_\allowbreak{}content}
+erlaubt es, Höhlen durch diesen Node zu graben. Das ist wichtig für
+jeden Node, der bei der
+Kartengenerierung\index{kartengenerierung@Kartengenerierung} unter der
+Erde platziert werden kann. Höhlen werden aus der Welt
+herausgeschnitten, nachdem alle anderen Nodes eines Gebiets generiert
+wurden.
+
+\section{Crafting}\label{crafting}
+
+Es gibt mehrere Arten von Craftingrezepten; welche gemeint ist, gibt die
+Eigenschaft \texttt{type} an.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{shaped} -- Die Zutaten müssen an der richtigen Stelle liegen.
+\item
+  \texttt{shapeless} -- Es ist egal, wo die Zutaten liegen; nur die
+  Menge muss stimmen.
+\item
+  \texttt{cooking} -- Rezepte für den Ofen.
+\item
+  \texttt{fuel} -- Legt fest, welche Items in Öfen verbrannt werden
+  können.
+\item
+  \texttt{tool\_\allowbreak{}repair} -- Legt fest, welche Items sich als
+  Werkzeug reparieren lassen.
+\end{itemize}
+
+Craftingrezepte sind keine Items und haben daher keinen Itemnamen, der
+sie eindeutig kennzeichnet.
+
+\subsection{Shaped}\label{shaped}
+
+Bei Shaped-Rezepten müssen die Zutaten in der richtigen Form, also im
+richtigen Muster, angeordnet sein. Im folgenden Beispiel müssen die
+Fragmente wie ein Stuhl angeordnet sein, damit das Rezept funktioniert.
+Die lokale Variable \texttt{frag} hält das Rezept übersichtlich.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{local} \VariableTok{frag} \OperatorTok{=} \StringTok{"mymod:diamond\_fragments"}
+
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craft}\OperatorTok{(\{}
+    \FunctionTok{type} \OperatorTok{=} \StringTok{"shaped"}\OperatorTok{,}
+    \VariableTok{output} \OperatorTok{=} \StringTok{"mymod:diamond\_chair 99"}\OperatorTok{,}
+    \VariableTok{recipe} \OperatorTok{=} \OperatorTok{\{}
+        \OperatorTok{\{} \VariableTok{frag}\OperatorTok{,} \StringTok{""}\OperatorTok{,}   \StringTok{""} \OperatorTok{\},}
+        \OperatorTok{\{} \VariableTok{frag}\OperatorTok{,} \VariableTok{frag}\OperatorTok{,} \StringTok{""} \OperatorTok{\},}
+        \OperatorTok{\{} \VariableTok{frag}\OperatorTok{,} \VariableTok{frag}\OperatorTok{,} \StringTok{""} \OperatorTok{\},}
+    \OperatorTok{\},}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Beachte die leere Spalte auf der rechten Seite. Sie bedeutet, dass
+rechts von der Form eine leere Spalte vorhanden sein \emph{muss}, sonst
+funktioniert das Rezept nicht. Soll diese leere Spalte nicht nötig sein,
+lässt du die leeren Strings einfach weg:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craft}\OperatorTok{(\{}
+    \VariableTok{output} \OperatorTok{=} \StringTok{"mymod:diamond\_chair 99"}\OperatorTok{,}
+    \VariableTok{recipe} \OperatorTok{=} \OperatorTok{\{}
+        \OperatorTok{\{} \VariableTok{frag}\OperatorTok{,} \StringTok{""}   \OperatorTok{\},}
+        \OperatorTok{\{} \VariableTok{frag}\OperatorTok{,} \VariableTok{frag} \OperatorTok{\},}
+        \OperatorTok{\{} \VariableTok{frag}\OperatorTok{,} \VariableTok{frag} \OperatorTok{\},}
+    \OperatorTok{\},}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Das Feld \texttt{type} wird für Shaped-Rezepte eigentlich nicht
+gebraucht, da \texttt{shaped} der Standardtyp ist.
+
+\subsection{Shapeless}\label{shapeless}
+
+Shapeless-Rezepte verwendest du, wenn es egal ist, wo die Zutaten liegen
+-- Hauptsache, sie sind da.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craft}\OperatorTok{(\{}
+    \FunctionTok{type} \OperatorTok{=} \StringTok{"shapeless"}\OperatorTok{,}
+    \VariableTok{output} \OperatorTok{=} \StringTok{"mymod:diamond 3"}\OperatorTok{,}
+    \VariableTok{recipe} \OperatorTok{=} \OperatorTok{\{}
+        \StringTok{"mymod:diamond\_fragments"}\OperatorTok{,}
+        \StringTok{"mymod:diamond\_fragments"}\OperatorTok{,}
+        \StringTok{"mymod:diamond\_fragments"}\OperatorTok{,}
+    \OperatorTok{\},}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Cooking und Fuel}\label{cooking-und-fuel}
+
+Rezepte vom Typ \texttt{cooking} werden nicht im Craftinggitter
+hergestellt, sondern in Öfen oder anderen Kochgeräten gekocht, die es in
+Mods geben kann.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craft}\OperatorTok{(\{}
+    \FunctionTok{type} \OperatorTok{=} \StringTok{"cooking"}\OperatorTok{,}
+    \VariableTok{output} \OperatorTok{=} \StringTok{"mymod:diamond\_fragments"}\OperatorTok{,}
+    \VariableTok{recipe} \OperatorTok{=} \StringTok{"default:coalblock"}\OperatorTok{,}
+    \VariableTok{cooktime} \OperatorTok{=} \DecValTok{10}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Der einzige echte Unterschied im Code ist, dass \texttt{recipe} nur ein
+einzelnes Item ist statt einer Tabelle (in geschweiften Klammern).
+Optional gibt es den Parameter \texttt{cooktime}, der festlegt, wie
+lange das Item zum Kochen braucht. Ohne Angabe sind es 3 Sekunden.
+
+Das Rezept oben funktioniert, wenn der Kohleblock im Eingabefeld liegt
+und darunter irgendein Brennstoff. Nach 10 Sekunden entstehen
+Diamantfragmente!
+
+Der Typ \texttt{fuel} ergänzt den Typ \texttt{cooking}: Er legt fest,
+was in Öfen und anderen Kochgeräten aus Mods verbrannt werden kann.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craft}\OperatorTok{(\{}
+    \FunctionTok{type} \OperatorTok{=} \StringTok{"fuel"}\OperatorTok{,}
+    \VariableTok{recipe} \OperatorTok{=} \StringTok{"mymod:diamond"}\OperatorTok{,}
+    \VariableTok{burntime} \OperatorTok{=} \DecValTok{300}\OperatorTok{,}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Fuel-Rezepte haben kein Ergebnis wie andere Rezepte, dafür aber eine
+Brenndauer in Sekunden, die angibt, wie lange sie als Brennstoff
+reichen. Der Diamant brennt also 300 Sekunden lang!
+
+\section{Gruppen}\label{gruppen}
+
+Items können Mitglied in vielen Gruppen\index{gruppe@Gruppe} sein, und
+Gruppen können viele Mitglieder haben. Gruppen werden mit der
+Eigenschaft \texttt{groups} in der Definitionstabelle festgelegt und
+haben jeweils einen zugehörigen Wert.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{groups} \OperatorTok{=} \OperatorTok{\{} \VariableTok{cracky} \OperatorTok{=} \DecValTok{3}\OperatorTok{,} \VariableTok{wood} \OperatorTok{=} \DecValTok{1} \OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Gruppen haben mehrere Zwecke. Erstens beschreiben sie Eigenschaften wie
+Abbautyp\index{abbautyp@Abbautyp} und Brennbarkeit. Zweitens kann in
+einem Craftingrezept statt eines Itemnamens eine Gruppe stehen; dann
+passt jedes Item dieser Gruppe.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_craft}\OperatorTok{(\{}
+    \FunctionTok{type} \OperatorTok{=} \StringTok{"shapeless"}\OperatorTok{,}
+    \VariableTok{output} \OperatorTok{=} \StringTok{"mymod:diamond\_thing 3"}\OperatorTok{,}
+    \VariableTok{recipe} \OperatorTok{=} \OperatorTok{\{} \StringTok{"group:wood"}\OperatorTok{,} \StringTok{"mymod:diamond"} \OperatorTok{\},}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Werkzeuge, Fähigkeiten und
+Abbautypen}\label{werkzeuge-fuxe4higkeiten-und-abbautypen}
+
+Abbautypen sind Gruppen, die festlegen, wie widerstandsfähig ein Node
+beim Abbauen mit verschiedenen Werkzeugen ist. Ein höherer Wert in einer
+Abbautyp-Gruppe bedeutet, dass sich der Node leichter und schneller
+abbauen lässt. Mehrere Abbautypen lassen sich kombinieren, damit
+verschiedene Werkzeugarten effizient eingesetzt werden können. Ein Node
+ohne Abbautyp kann mit keinem Werkzeug abgebaut werden.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2051}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4359}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3590}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Gruppe
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Bestes Werkzeug
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Beschreibung
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{crumbly} & Schaufel & Erde, Sand \\
+\texttt{cracky} & Spitzhacke & Zähes (aber sprödes) Material wie
+Stein \\
+\texttt{snappy} & \emph{beliebig} & Lässt sich mit feinen Werkzeugen
+schneiden, z.~B. Blätter, kleine Pflanzen, Draht, Blech \\
+\texttt{choppy} & Axt & Lässt sich mit scharfer Kraft schneiden, z.~B.
+Bäume, Holzbretter \\
+\texttt{fleshy} & Schwert & Lebewesen wie Tiere und der Spieler; kann
+Bluteffekte beim Treffen nahelegen \\
+\texttt{explody} & ? & Besonders anfällig für Explosionen \\
+\texttt{oddly\_\allowbreak{}breakable\_\allowbreak{}by\_\allowbreak{}hand}
+& \emph{beliebig} & Fackeln und Ähnliches -- sehr schnell abzubauen \\
+\end{longtable}
+
+Jedes Werkzeug hat eine Werkzeugfähigkeit (\emph{tool capability}). Sie
+umfasst eine Liste der unterstützten Abbautypen und für jeden Typ
+zugehörige Eigenschaften wie Abbauzeiten und
+Abnutzung.\index{abnutzung@Abnutzung} Werkzeuge können außerdem je Typ
+eine maximale Härte haben; so lässt sich verhindern, dass schwächere
+Werkzeuge härtere Nodes abbauen. Sehr häufig enthalten Werkzeuge alle
+Abbautypen in ihren Fähigkeiten, wobei die weniger geeigneten sehr
+ineffiziente Werte haben. Hat das Item, das ein Spieler gerade in der
+Hand hält, keine eigene Werkzeugfähigkeit, wird stattdessen die
+Fähigkeit der Hand verwendet.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{core}\OperatorTok{.}\NormalTok{register\_tool}\OperatorTok{(}\StringTok{"mymod:tool"}\OperatorTok{,} \OperatorTok{\{}
+    \VariableTok{description} \OperatorTok{=} \StringTok{"Mein Werkzeug"}\OperatorTok{,}
+    \VariableTok{inventory\_image} \OperatorTok{=} \StringTok{"mymod\_tool.png"}\OperatorTok{,}
+    \VariableTok{tool\_capabilities} \OperatorTok{=} \OperatorTok{\{}
+        \VariableTok{full\_punch\_interval} \OperatorTok{=} \DecValTok{1.5}\OperatorTok{,}
+        \VariableTok{max\_drop\_level} \OperatorTok{=} \DecValTok{1}\OperatorTok{,}
+        \VariableTok{groupcaps} \OperatorTok{=} \OperatorTok{\{}
+            \VariableTok{crumbly} \OperatorTok{=} \OperatorTok{\{}
+                \VariableTok{maxlevel} \OperatorTok{=} \DecValTok{2}\OperatorTok{,}
+                \VariableTok{uses} \OperatorTok{=} \DecValTok{20}\OperatorTok{,}
+                \VariableTok{times} \OperatorTok{=} \OperatorTok{\{} \OperatorTok{[}\DecValTok{1}\OperatorTok{]} \OperatorTok{=} \DecValTok{1.60}\OperatorTok{,} \OperatorTok{[}\DecValTok{2}\OperatorTok{]} \OperatorTok{=} \DecValTok{1.20}\OperatorTok{,} \OperatorTok{[}\DecValTok{3}\OperatorTok{]} \OperatorTok{=} \DecValTok{0.80} \OperatorTok{\},}
+            \OperatorTok{\},}
+        \OperatorTok{\},}
+        \VariableTok{damage\_groups} \OperatorTok{=} \OperatorTok{\{} \VariableTok{fleshy} \OperatorTok{=} \DecValTok{2} \OperatorTok{\},}
+    \OperatorTok{\},}
+\OperatorTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{groupcaps} ist die Liste der Abbautypen, mit denen das Werkzeug
+Nodes abbauen kann. Schadensgruppen\index{schadensgruppe@Schadensgruppe}
+(\emph{damage groups}) steuern, wie Werkzeuge Objekten Schaden zufügen;
+das wird später im Kapitel „Objekte, Spieler und
+Entities``\index{entity@Entity} behandelt.
